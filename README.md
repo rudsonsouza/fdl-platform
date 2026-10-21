@@ -62,4 +62,17 @@ Perfis: `dev` (padrão) e `test` (usado nos testes, com segredo JWT fixo).
 
 SQLite em arquivo (`FDL_DB_PATH`), com o schema criado por migrações Flyway em `backend/src/main/resources/db/migration` (`V1__create_users.sql`, `V2__create_orders.sql`) e `ddl-auto=validate`. A conexão usa `journal_mode=WAL`, `foreign_keys=ON` e `busy_timeout=5000`, com pool de 1 conexão, porque o SQLite aceita um escritor por vez.
 
-Tabelas: `users`, `orders`, `order_items` e `order_status_history`. Os valores de `status` e as regras de quantidade e preço são garantidos também por `CHECK` no banco.
+Tabelas: `users`, `orders`, `order_items` e `order_status_history` (`V3` acrescenta a coluna `position`, que preserva a ordem de itens e histórico). Os valores de `status` e as regras de quantidade e preço são garantidos também por `CHECK` no banco.
+
+### Domínio de pedidos
+
+O agregado `Order` (`com.fdl.platform.order.domain`) concentra as regras de negócio, sem depender de Spring: total calculado no servidor, status inicial `RECEBIDO` e histórico de status. As transições vivem em `OrderStatus`:
+
+| De | Para (permitido) |
+| --- | --- |
+| `RECEBIDO` | `EM_PREPARO`, `CANCELADO` |
+| `EM_PREPARO` | `SAIU_PARA_ENTREGA`, `CANCELADO` |
+| `SAIU_PARA_ENTREGA` | `ENTREGUE` |
+| `ENTREGUE`, `CANCELADO` | nenhuma (estados finais) |
+
+Qualquer outra transição lança `InvalidStatusTransitionException`, que a API traduzirá em `409`.

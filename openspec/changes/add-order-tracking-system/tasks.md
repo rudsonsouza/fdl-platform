@@ -26,12 +26,12 @@
 
 ## 4. Domínio de pedidos e ciclo de status
 
-- [ ] 4.1 [TDD] Implementar `OrderStatus` com `allowedTransitions()`/`canTransitionTo`; verificar com teste parametrizado das 25 combinações origem×destino (spec `order-status-lifecycle`)
-- [ ] 4.2 Implementar entidades `Order` (`@Version`), `OrderItem`, `DeliveryAddress` (embeddable) e `OrderStatusHistory`; verificar com teste de repositório que persiste e relê um pedido completo
-- [ ] 4.3 [TDD] Implementar `Order.create(...)` com status `RECEBIDO`, histórico inicial `null→RECEBIDO` e `totalCents` calculado; verificar com testes unitários (total 7890 do exemplo do spec)
-- [ ] 4.4 [TDD] Implementar `Order#changeStatus(newStatus, userId, Clock)` com histórico e `InvalidStatusTransitionException` carregando `currentStatus`, `requestedStatus` e `allowedTransitions`; verificar com testes de transição válida, inválida, estado final e mesmo estado (histórico inalterado na falha)
-- [ ] 4.5 Implementar `OrderRepository` (busca paginada por status, fetch de itens/histórico no detalhe); verificar com testes de filtro, paginação, ordenação, cascade e `CHECK` de status
-- [ ] 4.6 Commitar (`feat(backend): add order domain and status state machine` + `test(backend): ...` se separado); verificar com `git log`
+- [x] 4.1 [TDD] Implementar `OrderStatus` com `allowedTransitions()`/`canTransitionTo`; verificar com teste parametrizado das 25 combinações origem×destino (spec `order-status-lifecycle`)
+- [x] 4.2 Implementar entidades `Order` (`@Version`), `OrderItem`, `DeliveryAddress` (embeddable) e `OrderStatusHistory`; verificar com teste de repositório que persiste e relê um pedido completo
+- [x] 4.3 [TDD] Implementar `Order.create(...)` com status `RECEBIDO`, histórico inicial `null→RECEBIDO` e `totalCents` calculado; verificar com testes unitários (total 7890 do exemplo do spec)
+- [x] 4.4 [TDD] Implementar `Order#changeStatus(newStatus, userId, Clock)` com histórico e `InvalidStatusTransitionException` carregando `currentStatus`, `requestedStatus` e `allowedTransitions`; verificar com testes de transição válida, inválida, estado final e mesmo estado (histórico inalterado na falha)
+- [x] 4.5 Implementar `OrderRepository` (busca paginada por status, fetch de itens/histórico no detalhe); verificar com testes de filtro, paginação, ordenação, cascade e `CHECK` de status
+- [x] 4.6 Commitar (`feat(backend): add order domain and status state machine` + `test(backend): ...` se separado); verificar com `git log`
 
 ## 5. Tratamento de erros e validação transversal
 
