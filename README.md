@@ -76,3 +76,34 @@ O agregado `Order` (`com.fdl.platform.order.domain`) concentra as regras de neg�
 | `ENTREGUE`, `CANCELADO` | nenhuma (estados finais) |
 
 Qualquer outra transição lança `InvalidStatusTransitionException`, que a API traduzirá em `409`.
+
+### Erros
+
+Toda resposta de erro usa `Content-Type: application/problem+json` (RFC 9457), com `type`, `title`, `status`, `detail`, `instance`, um `code` estável e o `traceId` da requisição (o mesmo valor do cabeçalho `X-Trace-Id` e dos logs). Erros de validação trazem `errors[]` com `field` e `message`.
+
+```json
+{
+  "type": "urn:fdl:problem:validation-error",
+  "title": "Dados inválidos",
+  "status": 400,
+  "detail": "Um ou mais campos são inválidos.",
+  "instance": "/api/v1/orders",
+  "code": "VALIDATION_ERROR",
+  "errors": [{ "field": "items[0].quantity", "message": "must be less than or equal to 99" }],
+  "traceId": "7c1e2f9a-5d0b-4c3a-9a55-0e8f2b6d1c44"
+}
+```
+
+| Status | `code` | Quando |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | Bean Validation em corpo ou parâmetros |
+| 400 | `MALFORMED_REQUEST` | JSON inválido, campo desconhecido, tipo errado (`1.5`, `"dois"`), enum inválido |
+| 400 | `INVALID_PARAMETER` | UUID inválido no caminho, parâmetro ausente ou de tipo errado |
+| 401 | `INVALID_CREDENTIALS` / `UNAUTHENTICATED` | Login incorreto / sem token ou token inválido |
+| 404 | `ORDER_NOT_FOUND` / `NOT_FOUND` | Pedido ou rota inexistente |
+| 409 | `INVALID_STATUS_TRANSITION` | Inclui `currentStatus`, `requestedStatus` e `allowedTransitions` |
+| 409 | `CONCURRENT_MODIFICATION` / `EMAIL_ALREADY_REGISTERED` | Versão desatualizada / e-mail repetido |
+| 415 | `UNSUPPORTED_MEDIA_TYPE` | `Content-Type` diferente de JSON |
+| 500 | `INTERNAL_ERROR` | Sem mensagem da exceção nem pilha; o detalhe fica só no log, com o `traceId` |
+
+O Jackson 3 é configurado de forma estrita em `JacksonConfig`: rejeita campos desconhecidos, não converte `1.5` nem `"2"` em inteiro, não lê enum em minúsculas nem por número e rejeita `null` em tipos primitivos.
