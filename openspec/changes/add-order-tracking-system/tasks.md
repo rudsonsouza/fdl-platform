@@ -35,10 +35,10 @@
 
 ## 5. Tratamento de erros e validação transversal
 
-- [ ] 5.1 Configurar Jackson 3 explicitamente (design D6): `spring.jackson.deserialization.fail-on-unknown-properties=true`, `JsonMapperBuilderCustomizer` sem coerção float/string→inteiro, enums case-sensitive, `FAIL_ON_NULL_FOR_PRIMITIVES` ligado; verificar com testes de desserialização do `JsonMapper` da aplicação (campo extra, `1.5`, `"dois"`, `"recebido"` falham)
-- [ ] 5.2 Implementar `GlobalExceptionHandler` + `ErrorCode` com Problem Details (`code`, `errors[]`, `traceId`; no `409` de transição também `currentStatus`, `requestedStatus`, `allowedTransitions`) para todas as exceções do design D7; verificar com testes unitários de cada mapeamento e ausência de stack trace no 500
-- [ ] 5.3 Implementar filtro de `traceId` (MDC + `X-Trace-Id`); verificar com teste que o mesmo valor aparece no cabeçalho e no corpo de erro
-- [ ] 5.4 Commitar como `feat(backend): add problem-details error handling`; verificar com `git log`
+- [x] 5.1 Configurar Jackson 3 explicitamente (design D6): `spring.jackson.deserialization.fail-on-unknown-properties=true`, `JsonMapperBuilderCustomizer` sem coerção float/string→inteiro, enums case-sensitive, `FAIL_ON_NULL_FOR_PRIMITIVES` ligado; verificar com testes de desserialização do `JsonMapper` da aplicação (campo extra, `1.5`, `"dois"`, `"recebido"` falham)
+- [x] 5.2 Implementar `GlobalExceptionHandler` + `ErrorCode` com Problem Details (`code`, `errors[]`, `traceId`; no `409` de transição também `currentStatus`, `requestedStatus`, `allowedTransitions`) para todas as exceções do design D7; verificar com testes unitários de cada mapeamento e ausência de stack trace no 500
+- [x] 5.3 Implementar filtro de `traceId` (MDC + `X-Trace-Id`); verificar com teste que o mesmo valor aparece no cabeçalho e no corpo de erro
+- [x] 5.4 Commitar como `feat(backend): add problem-details error handling`; verificar com `git log`
 
 ## 6. Autenticação
 

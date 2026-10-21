@@ -45,6 +45,7 @@ class HealthIT {
         var response = get("/api/v1/orders");
 
         assertThat(response.statusCode()).isEqualTo(401);
+        assertThat(response.headers().firstValue("X-Trace-Id")).isPresent();
     }
 
     private HttpResponse<String> get(String path) throws Exception {

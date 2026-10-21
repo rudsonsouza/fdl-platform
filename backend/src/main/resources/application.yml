@@ -22,6 +22,14 @@ spring:
         dialect: org.hibernate.community.dialect.SQLiteDialect
   flyway:
     enabled: true
+  jackson:
+    deserialization:
+      # Também definido em JacksonConfig; mantido aqui para ficar visível na configuração.
+      fail-on-unknown-properties: true
+
+logging:
+  pattern:
+    level: "%5p [%X{traceId:-}]"
 
 management:
   endpoints:
