@@ -4,13 +4,19 @@ spring:
   profiles:
     default: dev
   datasource:
-    # Pragmas, pool de 1 conexão e migrações chegam no grupo 3.
     url: jdbc:sqlite:${FDL_DB_PATH:./data/fdl.db}
     driver-class-name: org.sqlite.JDBC
+    hikari:
+      # O SQLite aceita um escritor por vez: uma única conexão evita SQLITE_BUSY dentro da aplicação.
+      maximum-pool-size: 1
+      data-source-properties:
+        journal_mode: WAL
+        foreign_keys: true
+        busy_timeout: 5000
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.community.dialect.SQLiteDialect

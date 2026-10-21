@@ -57,3 +57,9 @@ curl http://localhost:8080/actuator/health
 | `FDL_SWAGGER_ENABLED` | `true` | Liga/desliga OpenAPI e Swagger UI |
 
 Perfis: `dev` (padrão) e `test` (usado nos testes, com segredo JWT fixo).
+
+### Banco de dados
+
+SQLite em arquivo (`FDL_DB_PATH`), com o schema criado por migrações Flyway em `backend/src/main/resources/db/migration` (`V1__create_users.sql`, `V2__create_orders.sql`) e `ddl-auto=validate`. A conexão usa `journal_mode=WAL`, `foreign_keys=ON` e `busy_timeout=5000`, com pool de 1 conexão, porque o SQLite aceita um escritor por vez.
+
+Tabelas: `users`, `orders`, `order_items` e `order_status_history`. Os valores de `status` e as regras de quantidade e preço são garantidos também por `CHECK` no banco.
