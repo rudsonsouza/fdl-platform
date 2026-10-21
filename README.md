@@ -79,6 +79,12 @@ O agregado `Order` (`com.fdl.platform.order.domain`) concentra as regras de neg�
 
 Qualquer outra transição lança `InvalidStatusTransitionException`, que a API traduzirá em `409`.
 
+### Testes e CI
+
+`./mvnw verify` roda os testes unitários (Surefire) e de integração (`*IT`, Failsafe, com SQLite em arquivo temporário) e falha se a cobertura de linhas ficar abaixo de 80% (hoje ~96%). `OrderFlowIT` percorre a jornada completa pela API (cadastro, login, criar, listar, buscar, avançar até `ENTREGUE` e a tentativa de cancelar) e `PersistenceRestartIT` sobe a aplicação duas vezes sobre o mesmo arquivo para provar a persistência.
+
+O workflow `.github/workflows/ci.yml` roda o job `backend` (Temurin 25, cache do Maven, `./mvnw verify`) em todo PR e em todo push na `main`, e publica os relatórios de teste e de cobertura como artefato.
+
 ### Autenticação
 
 Cadastro e login são públicos; todo o resto da API (exceto `/actuator/health` e a documentação OpenAPI) exige `Authorization: Bearer <token>`. O token é um JWT HS256 com `sub` (id do usuário), `email`, `name`, `iss`, `iat` e `exp`.
