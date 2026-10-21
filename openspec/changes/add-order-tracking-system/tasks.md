@@ -42,14 +42,14 @@
 
 ## 6. Autenticação
 
-- [ ] 6.1 Implementar `User` + `UserRepository.findByEmailIgnoreCase`; verificar com teste de repositório da unicidade de e-mail
-- [ ] 6.2 Implementar `JwtTokenService` (Nimbus HS256, TTL configurável, falha de startup sem segredo); verificar com testes de claims, expiração e assinatura inválida
-- [ ] 6.3 Configurar `SecurityFilterChain` stateless, rotas públicas, BCrypt(12), CORS e `AuthenticationEntryPoint` em Problem Details; verificar com `SecurityTest` (sem token, expirado, adulterado → `401 UNAUTHENTICATED`; `/auth/**` públicas)
-- [ ] 6.4 [TDD] Implementar `AuthService.register` (e-mail normalizado, hash, `409` em duplicado) e `AuthService.login` (`401` genérico, tempo uniforme); verificar com testes unitários incluindo senha ≠ hash persistido
-- [ ] 6.5 Implementar DTOs `RegisterRequest`/`LoginRequest`/`TokenResponse` e `AuthController` (`/register`, `/login`, `/me`); verificar com `AuthControllerTest` dos caminhos felizes, `401` e `409`
-- [ ] 6.6 Escrever `AuthControllerValidationTest` (`@WebMvcTest`, parametrizado) cobrindo todos os cenários `400` dos requisitos de validação do spec `user-auth` (corpo vazio, JSON malformado, nome/e-mail/senha inválidos, campo desconhecido) e `415`; verificar `code`, `errors[].field` e `verifyNoInteractions(authService)`
-- [ ] 6.7 Verificar com teste de captura de logs que senha e token não aparecem em logs após login com falha
-- [ ] 6.8 Documentar endpoints de auth no OpenAPI (exemplos e erros) e verificar no `/v3/api-docs`
+- [x] 6.1 Implementar `User` + `UserRepository.findByEmailIgnoreCase`; verificar com teste de repositório da unicidade de e-mail
+- [x] 6.2 Implementar `JwtTokenService` (Nimbus HS256, TTL configurável, falha de startup sem segredo); verificar com testes de claims, expiração e assinatura inválida
+- [x] 6.3 Configurar `SecurityFilterChain` stateless, rotas públicas, BCrypt(12), CORS e `AuthenticationEntryPoint` em Problem Details; verificar com `SecurityTest` (sem token, expirado, adulterado → `401 UNAUTHENTICATED`; `/auth/**` públicas)
+- [x] 6.4 [TDD] Implementar `AuthService.register` (e-mail normalizado, hash, `409` em duplicado) e `AuthService.login` (`401` genérico, tempo uniforme); verificar com testes unitários incluindo senha ≠ hash persistido
+- [x] 6.5 Implementar DTOs `RegisterRequest`/`LoginRequest`/`TokenResponse` e `AuthController` (`/register`, `/login`, `/me`); verificar com `AuthControllerTest` dos caminhos felizes, `401` e `409`
+- [x] 6.6 Escrever `AuthControllerValidationTest` (`@WebMvcTest`, parametrizado) cobrindo todos os cenários `400` dos requisitos de validação do spec `user-auth` (corpo vazio, JSON malformado, nome/e-mail/senha inválidos, campo desconhecido) e `415`; verificar `code`, `errors[].field` e `verifyNoInteractions(authService)`
+- [x] 6.7 Verificar com teste de captura de logs que senha e token não aparecem em logs após login com falha
+- [x] 6.8 Documentar endpoints de auth no OpenAPI (exemplos e erros) e verificar no `/v3/api-docs`
 - [ ] 6.9 Commitar (`feat(backend): add registration, login and JWT security`); verificar com `git log`
 
 ## 7. API de pedidos

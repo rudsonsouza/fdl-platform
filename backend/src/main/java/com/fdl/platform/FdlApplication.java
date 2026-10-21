@@ -2,9 +2,11 @@ package com.fdl.platform;
 
 import com.fdl.platform.shared.config.SqliteDataDirectoryInitializer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class FdlApplication {
 
     public static void main(String[] args) {

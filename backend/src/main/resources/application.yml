@@ -52,5 +52,7 @@ fdl:
     # Obrigatória fora do perfil test (validação de startup na tarefa 6.2).
     secret: ${FDL_JWT_SECRET:}
     ttl: ${FDL_JWT_TTL:PT60M}
+  security:
+    bcrypt-strength: ${FDL_BCRYPT_STRENGTH:12}
   cors:
     allowed-origins: ${FDL_CORS_ORIGINS:http://localhost:5173}
