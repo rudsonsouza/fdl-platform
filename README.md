@@ -91,6 +91,30 @@ Cadastro e login são públicos; todo o resto da API (exceto `/actuator/health` 
 
 A senha precisa ter 8–72 caracteres (e no máximo 72 bytes em UTF-8, limite do BCrypt) com ao menos uma letra e um dígito, e só é guardada como hash BCrypt. Senhas e tokens não aparecem em logs: os DTOs mascaram esses campos no `toString`, e um teste de integração captura os logs em DEBUG para garantir isso. A documentação interativa está em `/swagger-ui.html` (`/v3/api-docs`).
 
+### Pedidos
+
+Todos os endpoints exigem `Authorization: Bearer <token>`.
+
+| Endpoint | Resposta |
+| --- | --- |
+| `POST /api/v1/orders` (`customer`, `items`, `deliveryAddress`) | `201` com `Location: /api/v1/orders/{id}`, status `RECEBIDO` e `totalCents` calculado pelo servidor |
+| `GET /api/v1/orders?status&page&size&sort` | `200` com `{content, page, size, totalElements, totalPages}`; padrão `page=0`, `size=100` (máximo 500), `sort=createdAt,desc` |
+| `GET /api/v1/orders/{id}` | `200` com itens, endereço, `history` e `allowedTransitions`; `404 ORDER_NOT_FOUND` |
+| `PATCH /api/v1/orders/{id}/status` (`status`) | `200` com o pedido; `409 INVALID_STATUS_TRANSITION` ou `409 CONCURRENT_MODIFICATION` |
+
+Regras do payload de criação: `customer.name` 2–100 caracteres, `customer.phone` 10–11 dígitos, 1–50 itens, `quantity` inteira de 1 a 99, `unitPriceCents` de 0 a 10.000.000, `state` com 2 letras maiúsculas, `zipCode` com 8 dígitos e `complement` opcional. `id`, `status`, `totalCents` e qualquer campo desconhecido resultam em `400 MALFORMED_REQUEST`. A ordenação aceita `createdAt`, `updatedAt`, `status` e `totalCents`.
+
+Transições de status permitidas:
+
+| De | Para |
+| --- | --- |
+| `RECEBIDO` | `EM_PREPARO`, `CANCELADO` |
+| `EM_PREPARO` | `SAIU_PARA_ENTREGA`, `CANCELADO` |
+| `SAIU_PARA_ENTREGA` | `ENTREGUE` |
+| `ENTREGUE`, `CANCELADO` | nenhuma (estados finais) |
+
+Cada transição aceita grava uma entrada no histórico (origem, destino, usuário e data/hora UTC); transições rejeitadas não gravam. Duas atualizações do mesmo pedido a partir da mesma versão aplicam no máximo uma (`@Version`); a outra recebe `409 CONCURRENT_MODIFICATION`.
+
 ### Erros
 
 Toda resposta de erro usa `Content-Type: application/problem+json` (RFC 9457), com `type`, `title`, `status`, `detail`, `instance`, um `code` estável e o `traceId` da requisição (o mesmo valor do cabeçalho `X-Trace-Id` e dos logs). Erros de validação trazem `errors[]` com `field` e `message`.
