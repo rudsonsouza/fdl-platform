@@ -18,11 +18,11 @@
 
 ## 3. Persistência SQLite
 
-- [ ] 3.1 Configurar datasource SQLite com PRAGMAs (WAL, `foreign_keys`, `busy_timeout`) e pool de 1 conexão; verificar com teste que lê os PRAGMAs ativos
-- [ ] 3.2 Criar migração `V1__create_users.sql` (com `uk_users_email`) e verificar aplicação do zero em teste
-- [ ] 3.3 Criar migração `V2__create_orders.sql` (orders, order_items, order_status_history, `CHECK`s e índices) e verificar que `ddl-auto=validate` passa
-- [ ] 3.4 Criar base de teste `@DataJpaTest` reutilizável com SQLite em `@TempDir` + Flyway e verificar com um teste de fumaça
-- [ ] 3.5 Commitar como `feat(backend): add SQLite persistence and migrations`; verificar com `git log`
+- [x] 3.1 Configurar datasource SQLite com PRAGMAs (WAL, `foreign_keys`, `busy_timeout`) e pool de 1 conexão; verificar com teste que lê os PRAGMAs ativos
+- [x] 3.2 Criar migração `V1__create_users.sql` (com `uk_users_email`) e verificar aplicação do zero em teste
+- [x] 3.3 Criar migração `V2__create_orders.sql` (orders, order_items, order_status_history, `CHECK`s e índices) e verificar que `ddl-auto=validate` passa
+- [x] 3.4 Criar base de teste `@DataJpaTest` reutilizável com SQLite em `@TempDir` + Flyway e verificar com um teste de fumaça
+- [x] 3.5 Commitar como `feat(backend): add SQLite persistence and migrations`; verificar com `git log`
 
 ## 4. Domínio de pedidos e ciclo de status
 
