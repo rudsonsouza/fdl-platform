@@ -54,14 +54,14 @@
 
 ## 7. API de pedidos
 
-- [ ] 7.1 Implementar DTOs (`CreateOrderRequest`, `CustomerRequest`, `OrderItemRequest`, `AddressRequest`, `UpdateStatusRequest`, `OrderResponse`, `OrderSummaryResponse`, `PageResponse`) com Bean Validation do spec `order-management` e `OrderMapper`; verificar com testes unitários do mapper
-- [ ] 7.2 [TDD] Implementar `OrderService` (`create` com `createdBy`, `findAll`, `findById` → `404`, `updateStatus` → `404`/`409`, conversão de `OptimisticLockingFailureException`); verificar com testes unitários com Mockito e `Clock` fixo
-- [ ] 7.3 Implementar `OrderController` (`POST /orders` com `Location`, `GET /orders` com allowlist de sort, `size` padrão 100 e máximo 500, `GET /orders/{id}` com `allowedTransitions`, `PATCH /orders/{id}/status`); verificar com `OrderControllerTest` dos casos `201/200/404/409` e de `GET /orders` sem parâmetros retornando todos os pedidos de teste numa página
-- [ ] 7.4 Escrever `CreateOrderValidationTest` (`@WebMvcTest`, parametrizado) cobrindo todos os cenários `400` do spec `order-management` (corpo vazio, JSON malformado, cliente, itens, item, endereço, `totalCents`/`id`/`status` enviados) e `415`; verificar `code`, `errors[].field` e `verifyNoInteractions(orderService)`
-- [ ] 7.5 Escrever `UpdateStatusValidationTest` cobrindo os cenários `400` do spec `order-status-lifecycle` (`{}`, `null`, `"PRONTO"`, `"recebido"`, `1`, id `abc`); verificar que o serviço não é chamado
-- [ ] 7.6 Escrever `ListAndGetOrderValidationTest` cobrindo `status=INVALIDO`, `page=-1`, `size=0`, `size=501`, `sort=senha,asc` e `GET /orders/abc`; verificar `400` com `code` correto
-- [ ] 7.7 Escrever teste de concorrência (duas atualizações sobre a mesma versão) e verificar uma resposta `200` e outra `409 CONCURRENT_MODIFICATION`
-- [ ] 7.8 Documentar endpoints de pedidos no OpenAPI, incluindo a matriz de transições e o significado de `400`/`409` em `PATCH /orders/{id}/status`; verificar no Swagger UI
+- [x] 7.1 Implementar DTOs (`CreateOrderRequest`, `CustomerRequest`, `OrderItemRequest`, `AddressRequest`, `UpdateStatusRequest`, `OrderResponse`, `OrderSummaryResponse`, `PageResponse`) com Bean Validation do spec `order-management` e `OrderMapper`; verificar com testes unitários do mapper
+- [x] 7.2 [TDD] Implementar `OrderService` (`create` com `createdBy`, `findAll`, `findById` → `404`, `updateStatus` → `404`/`409`, conversão de `OptimisticLockingFailureException`); verificar com testes unitários com Mockito e `Clock` fixo
+- [x] 7.3 Implementar `OrderController` (`POST /orders` com `Location`, `GET /orders` com allowlist de sort, `size` padrão 100 e máximo 500, `GET /orders/{id}` com `allowedTransitions`, `PATCH /orders/{id}/status`); verificar com `OrderControllerTest` dos casos `201/200/404/409` e de `GET /orders` sem parâmetros retornando todos os pedidos de teste numa página
+- [x] 7.4 Escrever `CreateOrderValidationTest` (`@WebMvcTest`, parametrizado) cobrindo todos os cenários `400` do spec `order-management` (corpo vazio, JSON malformado, cliente, itens, item, endereço, `totalCents`/`id`/`status` enviados) e `415`; verificar `code`, `errors[].field` e `verifyNoInteractions(orderService)`
+- [x] 7.5 Escrever `UpdateStatusValidationTest` cobrindo os cenários `400` do spec `order-status-lifecycle` (`{}`, `null`, `"PRONTO"`, `"recebido"`, `1`, id `abc`); verificar que o serviço não é chamado
+- [x] 7.6 Escrever `ListAndGetOrderValidationTest` cobrindo `status=INVALIDO`, `page=-1`, `size=0`, `size=501`, `sort=senha,asc` e `GET /orders/abc`; verificar `400` com `code` correto
+- [x] 7.7 Escrever teste de concorrência (duas atualizações sobre a mesma versão) e verificar uma resposta `200` e outra `409 CONCURRENT_MODIFICATION`
+- [x] 7.8 Documentar endpoints de pedidos no OpenAPI, incluindo a matriz de transições e o significado de `400`/`409` em `PATCH /orders/{id}/status`; verificar no Swagger UI
 - [ ] 7.9 Commitar (`feat(backend): add orders API` e `test(backend): cover invalid payloads with 400`); verificar com `git log`
 
 ## 8. Integração do back-end e CI
