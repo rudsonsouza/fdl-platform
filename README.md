@@ -41,6 +41,7 @@ API REST em `backend/` (Java + Spring Boot, Maven). Pré-requisito: JDK 25.
 
 ```bash
 cd backend
+export FDL_JWT_SECRET="$(openssl rand -base64 48)"   # sem segredo (>= 32 caracteres) a aplicação não sobe
 ./mvnw spring-boot:run      # sobe em http://localhost:8080 (perfil dev)
 ./mvnw verify               # testes unitários + integração + cobertura mínima de 80% de linhas
 curl http://localhost:8080/actuator/health
@@ -51,8 +52,9 @@ curl http://localhost:8080/actuator/health
 | Variável | Padrão | Uso |
 | --- | --- | --- |
 | `FDL_DB_PATH` | `./data/fdl.db` | Arquivo do SQLite (o diretório é criado no primeiro start) |
-| `FDL_JWT_SECRET` | vazio | Segredo HS256 (>= 256 bits); obrigatório fora do perfil `test` a partir da tarefa 6.2 |
+| `FDL_JWT_SECRET` | vazio | Segredo HS256 (>= 256 bits); **obrigatório** fora do perfil `test`: sem ele (ou com menos de 32 caracteres) a aplicação não sobe |
 | `FDL_JWT_TTL` | `PT60M` | Validade do token |
+| `FDL_BCRYPT_STRENGTH` | `12` | Custo do BCrypt (4–15) |
 | `FDL_CORS_ORIGINS` | `http://localhost:5173` | Origens permitidas |
 | `FDL_SWAGGER_ENABLED` | `true` | Liga/desliga OpenAPI e Swagger UI |
 
@@ -76,6 +78,18 @@ O agregado `Order` (`com.fdl.platform.order.domain`) concentra as regras de neg�
 | `ENTREGUE`, `CANCELADO` | nenhuma (estados finais) |
 
 Qualquer outra transição lança `InvalidStatusTransitionException`, que a API traduzirá em `409`.
+
+### Autenticação
+
+Cadastro e login são públicos; todo o resto da API (exceto `/actuator/health` e a documentação OpenAPI) exige `Authorization: Bearer <token>`. O token é um JWT HS256 com `sub` (id do usuário), `email`, `name`, `iss`, `iat` e `exp`.
+
+| Endpoint | Resposta |
+| --- | --- |
+| `POST /api/v1/auth/register` (`name`, `email`, `password`) | `201` com `id`, `name`, `email` (em minúsculas); `409 EMAIL_ALREADY_REGISTERED` se o e-mail existir, sem diferenciar maiúsculas |
+| `POST /api/v1/auth/login` (`email`, `password`) | `200` com `accessToken`, `tokenType` = `Bearer`, `expiresIn` (segundos); `401 INVALID_CREDENTIALS` igual para senha errada e e-mail inexistente |
+| `GET /api/v1/auth/me` | `200` com `id`, `name`, `email` do dono do token |
+
+A senha precisa ter 8–72 caracteres (e no máximo 72 bytes em UTF-8, limite do BCrypt) com ao menos uma letra e um dígito, e só é guardada como hash BCrypt. Senhas e tokens não aparecem em logs: os DTOs mascaram esses campos no `toString`, e um teste de integração captura os logs em DEBUG para garantir isso. A documentação interativa está em `/swagger-ui.html` (`/v3/api-docs`).
 
 ### Erros
 

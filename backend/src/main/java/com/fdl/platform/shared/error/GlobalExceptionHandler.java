@@ -6,7 +6,6 @@ import com.fdl.platform.shared.web.TraceIdFilter;
 import com.fdl.platform.user.domain.EmailAlreadyRegisteredException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -141,14 +140,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     ResponseEntity<Object> handleBadCredentials(BadCredentialsException ex, WebRequest request) {
+        // Só o fato da falha: nunca o e-mail, a senha ou o token recebidos.
+        log.debug("Login rejeitado por credenciais inválidas");
         return respond(ErrorCode.INVALID_CREDENTIALS, "E-mail ou senha inválidos.", List.of(), new HttpHeaders(),
                 request);
     }
 
     @ExceptionHandler(AuthenticationException.class)
     ResponseEntity<Object> handleAuthentication(AuthenticationException ex, WebRequest request) {
-        return respond(ErrorCode.UNAUTHENTICATED, "Autenticação necessária ou token inválido.", List.of(),
-                new HttpHeaders(), request);
+        var headers = new HttpHeaders();
+        headers.set(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
+        return respond(ErrorCode.UNAUTHENTICATED, "Autenticação necessária ou token inválido.", List.of(), headers,
+                request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -201,7 +204,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         if (body instanceof ProblemDetail problem
                 && (problem.getProperties() == null || !problem.getProperties().containsKey("code"))) {
             var code = statusCode.is4xxClientError() ? ErrorCode.MALFORMED_REQUEST : ErrorCode.INTERNAL_ERROR;
-            problem.setType(typeOf(code));
+            problem.setType(ProblemFactory.typeOf(code));
             problem.setProperty("code", code.name());
             problem.setProperty("traceId", MDC.get(TraceIdFilter.MDC_KEY));
         }
@@ -217,22 +220,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private ProblemDetail problem(ErrorCode code, String detail, List<FieldErrorDetail> errors, WebRequest request) {
-        var problem = ProblemDetail.forStatusAndDetail(code.status(), detail);
-        problem.setType(typeOf(code));
-        problem.setTitle(code.title());
-        if (request instanceof ServletWebRequest servletRequest) {
-            problem.setInstance(URI.create(servletRequest.getRequest().getRequestURI()));
-        }
-        problem.setProperty("code", code.name());
-        if (!errors.isEmpty()) {
-            problem.setProperty("errors", errors);
-        }
-        problem.setProperty("traceId", MDC.get(TraceIdFilter.MDC_KEY));
-        return problem;
-    }
-
-    private static URI typeOf(ErrorCode code) {
-        return URI.create("urn:fdl:problem:" + code.name().toLowerCase().replace('_', '-'));
+        var instance = request instanceof ServletWebRequest servletRequest ? servletRequest.getRequest().getRequestURI()
+                : null;
+        return ProblemFactory.create(code, detail, errors, instance);
     }
 
     private static String jsonPath(JacksonException exception) {

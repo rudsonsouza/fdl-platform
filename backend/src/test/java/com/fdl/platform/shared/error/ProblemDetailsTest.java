@@ -11,9 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fdl.platform.shared.config.JacksonConfig;
-import com.fdl.platform.shared.config.SecurityConfig;
 import com.fdl.platform.shared.web.TraceIdFilter;
 import com.fdl.platform.support.ProbeController;
+import com.fdl.platform.support.WebSliceSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -25,7 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(ProbeController.class)
-@Import({SecurityConfig.class, JacksonConfig.class})
+@Import({WebSliceSecurityConfig.class, JacksonConfig.class})
 class ProblemDetailsTest {
 
     private static final String PROBLEM_JSON = "application/problem+json";

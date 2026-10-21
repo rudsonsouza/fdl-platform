@@ -3,6 +3,7 @@ package com.fdl.platform.shared.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fdl.platform.support.WebSliceSecurityConfig;
 import com.fdl.platform.support.ProbeController;
 import com.fdl.platform.support.ProbeController.Item;
 import com.fdl.platform.support.ProbeController.Kind;
@@ -18,7 +19,7 @@ import tools.jackson.databind.exc.UnrecognizedPropertyException;
 
 /** Garante que o JsonMapper da aplicação é estrito onde os cenários 400 dependem disso. */
 @WebMvcTest(ProbeController.class)
-@Import({SecurityConfig.class, JacksonConfig.class})
+@Import({WebSliceSecurityConfig.class, JacksonConfig.class})
 class JacksonConfigTest {
 
     @Autowired
