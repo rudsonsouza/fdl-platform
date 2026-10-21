@@ -66,9 +66,9 @@
 
 ## 8. Integração do back-end e CI
 
-- [ ] 8.1 Escrever `OrderFlowIT` (`@SpringBootTest`, SQLite temporário): cadastro → login → criar → listar → buscar → `EM_PREPARO` → `SAIU_PARA_ENTREGA` → `ENTREGUE` → cancelar (`409` com `allowedTransitions` vazio); verificar `history` com 4 entradas
-- [ ] 8.2 Escrever `PersistenceRestartIT` que cria pedido, reinicia o contexto com o mesmo arquivo e verifica que o pedido é retornado
-- [ ] 8.3 Rodar `./mvnw verify` e verificar build verde com cobertura JaCoCo ≥ 80%
+- [x] 8.1 Escrever `OrderFlowIT` (`@SpringBootTest`, SQLite temporário): cadastro → login → criar → listar → buscar → `EM_PREPARO` → `SAIU_PARA_ENTREGA` → `ENTREGUE` → cancelar (`409` com `allowedTransitions` vazio); verificar `history` com 4 entradas
+- [x] 8.2 Escrever `PersistenceRestartIT` que cria pedido, reinicia o contexto com o mesmo arquivo e verifica que o pedido é retornado
+- [x] 8.3 Rodar `./mvnw verify` e verificar build verde com cobertura JaCoCo ≥ 80%
 - [ ] 8.4 Criar `.github/workflows/ci.yml` com o job `backend` (Temurin 25, cache Maven, `./mvnw verify`); verificar execução verde no GitHub Actions após o push
 - [ ] 8.5 Commitar (`test(backend): add integration tests` e `ci: add backend workflow`); verificar com `git log`
 
