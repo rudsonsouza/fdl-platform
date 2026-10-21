@@ -4,8 +4,8 @@
 
 ## 1. Repositório e versionamento
 
-- [ ] 1.1 Ampliar o `.gitignore` existente com as entradas de front-end, SQLite, segredos, SO/IDE e `Claude outputs/` (design D13); verificar com `git status` que `.DS_Store` e `data/` não aparecem após criar arquivos de teste nessas rotas
-- [ ] 1.2 Commitar `.gitignore`, `openspec/` e `.claude/` como `chore: add OpenSpec planning for order tracking` e fazer push para `origin/main`; verificar o commit no GitHub
+- [x] 1.1 Ampliar o `.gitignore` existente com as entradas de front-end, SQLite, segredos, SO/IDE e `Claude outputs/` (design D13); verificar com `git status` que `.DS_Store` e `data/` não aparecem após criar arquivos de teste nessas rotas
+- [ ] 1.2 Na branch `chore/repo-setup`, commitar `.gitignore`, `openspec/` e `.claude/` (`chore: add OpenSpec planning for order tracking`), fazer push e abrir PR para `main`; verificar a branch e o PR no GitHub (o merge acontece ao fim do grupo 1)
 - [ ] 1.3 Criar estrutura `backend/` e `frontend/` (com `.gitkeep`) e `.editorconfig`; verificar que os diretórios existem
 - [ ] 1.4 Definir a estratégia de branch (branch por grupo + PR, ou commits diretos na `main`) e registrar no README em "Contribuição"; verificar o texto no README
 
