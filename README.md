@@ -19,3 +19,41 @@ Food Delivery Challenge
 
 - Todo commit e todo push passam por revisão manual do autor antes de serem feitos, inclusive quando o código é produzido com apoio de IA.
 - Depois que o CI (GitHub Actions, tarefas 8.4 e 9.9) estiver configurado, ele precisa estar verde antes do merge de qualquer PR.
+
+## Back-end
+
+API REST em `backend/` (Java + Spring Boot, Maven). Pré-requisito: JDK 25.
+
+### Versões efetivas
+
+| Componente | Versão |
+| --- | --- |
+| Java | 25 |
+| Spring Boot | 4.1.1 |
+| Hibernate ORM (+ community dialects) | 7.4.5.Final |
+| Flyway | 12.4.0 |
+| sqlite-jdbc | 3.53.2.1 |
+| springdoc-openapi | 3.1.1 |
+| JaCoCo | 0.8.15 |
+| Maven (wrapper) | 3.9.11 |
+
+### Rodando
+
+```bash
+cd backend
+./mvnw spring-boot:run      # sobe em http://localhost:8080 (perfil dev)
+./mvnw verify               # testes unitários + integração + cobertura mínima de 80% de linhas
+curl http://localhost:8080/actuator/health
+```
+
+### Configuração
+
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `FDL_DB_PATH` | `./data/fdl.db` | Arquivo do SQLite (o diretório é criado no primeiro start) |
+| `FDL_JWT_SECRET` | vazio | Segredo HS256 (>= 256 bits); obrigatório fora do perfil `test` a partir da tarefa 6.2 |
+| `FDL_JWT_TTL` | `PT60M` | Validade do token |
+| `FDL_CORS_ORIGINS` | `http://localhost:5173` | Origens permitidas |
+| `FDL_SWAGGER_ENABLED` | `true` | Liga/desliga OpenAPI e Swagger UI |
+
+Perfis: `dev` (padrão) e `test` (usado nos testes, com segredo JWT fixo).

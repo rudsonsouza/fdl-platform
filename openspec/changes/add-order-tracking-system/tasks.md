@@ -5,16 +5,16 @@
 ## 1. Repositório e versionamento
 
 - [x] 1.1 Ampliar o `.gitignore` existente com as entradas de front-end, SQLite, segredos, SO/IDE e `Claude outputs/` (design D13); verificar com `git status` que `.DS_Store` e `data/` não aparecem após criar arquivos de teste nessas rotas
-- [ ] 1.2 Na branch `chore/repo-setup`, commitar `.gitignore`, `openspec/` e `.claude/` (`chore: add OpenSpec planning for order tracking`), fazer push e abrir PR para `main`; verificar a branch e o PR no GitHub (o merge acontece ao fim do grupo 1)
+- [x] 1.2 Na branch `chore/repo-setup`, commitar `.gitignore`, `openspec/` e `.claude/` (`chore: add OpenSpec planning for order tracking`), fazer push e abrir PR para `main`; verificar a branch e o PR no GitHub (o merge acontece ao fim do grupo 1)
 - [x] 1.3 Criar estrutura `backend/` e `frontend/` (com `.gitkeep`) e `.editorconfig`; verificar que os diretórios existem
 - [x] 1.4 Definir a estratégia de branch (branch por grupo + PR, ou commits diretos na `main`) e registrar no README em "Contribuição"; verificar o texto no README
 
 ## 2. Fundação do back-end
 
-- [ ] 2.1 Gerar projeto no start.spring.io (Maven, Java 25, Spring Boot 4.x) com starters webmvc, validation, security, oauth2-resource-server, data-jpa, flyway, actuator e os starters de teste webmvc, data-jpa e security; adicionar `sqlite-jdbc`, `hibernate-community-dialects` e springdoc compatível com Boot 4; registrar no README as versões efetivas; verificar com `./mvnw -q compile`
-- [ ] 2.2 Configurar Surefire (unit), Failsafe (`*IT`) e JaCoCo com regra de 80% de linhas que falha o build; verificar que `./mvnw verify` executa os plugins
-- [ ] 2.3 Configurar perfis `dev`/`test` e variáveis `FDL_DB_PATH`, `FDL_JWT_SECRET`, `FDL_JWT_TTL`, `FDL_CORS_ORIGINS`, `FDL_SWAGGER_ENABLED`; verificar que a aplicação sobe e `/actuator/health` retorna `UP`
-- [ ] 2.4 Commitar como `chore(backend): scaffold Spring Boot 4 project`; verificar com `git log --oneline`
+- [x] 2.1 Gerar projeto no start.spring.io (Maven, Java 25, Spring Boot 4.x) com starters webmvc, validation, security, oauth2-resource-server, data-jpa, flyway, actuator e os starters de teste webmvc, data-jpa e security; adicionar `sqlite-jdbc`, `hibernate-community-dialects` e springdoc compatível com Boot 4; registrar no README as versões efetivas; verificar com `./mvnw -q compile`
+- [x] 2.2 Configurar Surefire (unit), Failsafe (`*IT`) e JaCoCo com regra de 80% de linhas que falha o build; verificar que `./mvnw verify` executa os plugins
+- [x] 2.3 Configurar perfis `dev`/`test` e variáveis `FDL_DB_PATH`, `FDL_JWT_SECRET`, `FDL_JWT_TTL`, `FDL_CORS_ORIGINS`, `FDL_SWAGGER_ENABLED`; verificar que a aplicação sobe e `/actuator/health` retorna `UP`
+- [x] 2.4 Commitar como `chore(backend): scaffold Spring Boot 4 project`; verificar com `git log --oneline`
 
 ## 3. Persistência SQLite
 

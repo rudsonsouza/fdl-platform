@@ -1,0 +1,4 @@
+fdl:
+  jwt:
+    # Segredo fixo, só para testes (>= 256 bits).
+    secret: test-only-secret-test-only-secret-test-only-secret-0123456789

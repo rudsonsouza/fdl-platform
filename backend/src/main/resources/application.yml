@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: fdl-backend
+  profiles:
+    default: dev
+  datasource:
+    # Pragmas, pool de 1 conexão e migrações chegam no grupo 3.
+    url: jdbc:sqlite:${FDL_DB_PATH:./data/fdl.db}
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    enabled: ${FDL_SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${FDL_SWAGGER_ENABLED:true}
+
+fdl:
+  jwt:
+    # Obrigatória fora do perfil test (validação de startup na tarefa 6.2).
+    secret: ${FDL_JWT_SECRET:}
+    ttl: ${FDL_JWT_TTL:PT60M}
+  cors:
+    allowed-origins: ${FDL_CORS_ORIGINS:http://localhost:5173}
