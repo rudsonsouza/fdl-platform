@@ -21,11 +21,11 @@ class MigrationsTest extends AbstractSqliteDataJpaTest {
     JdbcTemplate jdbc;
 
     @Test
-    void flywayAppliedBothMigrationsFromScratch() {
+    void flywayAppliedAllMigrationsFromScratch() {
         var versions = jdbc.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success = 1 ORDER BY installed_rank", String.class);
 
-        assertThat(versions).containsExactly("1", "2");
+        assertThat(versions).containsExactly("1", "2", "3");
     }
 
     @Test
