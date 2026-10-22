@@ -20,6 +20,23 @@ Food Delivery Challenge
 - Todo commit e todo push passam por revisão manual do autor antes de serem feitos, inclusive quando o código é produzido com apoio de IA.
 - Depois que o CI (GitHub Actions, tarefas 8.4 e 9.9) estiver configurado, ele precisa estar verde antes do merge de qualquer PR.
 
+## Front-end
+
+React 19 + TypeScript (`strict`) + Vite, em `frontend/`. Estado em três camadas: servidor (TanStack Query), sessão (Zustand em `sessionStorage`, encerrada ao fechar a aba ou quando o token expira) e formulários (React Hook Form + Zod, nas próximas telas).
+
+```bash
+cd frontend
+npm ci
+npm run dev             # http://localhost:5173; o Vite repassa /api para http://localhost:8080
+npm run lint            # ESLint com jsx-a11y
+npm run test:coverage   # Vitest + Testing Library + MSW + axe; falha abaixo de 70% de cobertura
+npm run build
+```
+
+Estrutura de `src/`: `app/` (roteador, providers, `AppShell`), `features/` (auth, orders), `shared/` (`api` com `apiClient`/`ApiError`, `session`, `ui`, `a11y`, `lib`) e `test/` (setup, handlers MSW, `renderWithProviders`). Componentes não chamam `fetch`: tudo passa pelo `apiClient`, que injeta o `Authorization`, converte `application/problem+json` em `ApiError` e encerra a sessão num `401`.
+
+Acessibilidade por construção: link "Pular para o conteúdo", marcos `header`/`nav`/`main`, um `h1` por tela com título do documento e foco atualizados a cada rota, região `aria-live` global, `Button` com `aria-disabled` no estado pendente, `TextField` com `aria-invalid`/`aria-describedby` e `FormErrorSummary` focado. Os testes rodam o axe nas telas e nos componentes.
+
 ## Back-end
 
 API REST em `backend/` (Java + Spring Boot, Maven). Pré-requisito: JDK 25.
@@ -83,7 +100,7 @@ Qualquer outra transição lança `InvalidStatusTransitionException`, que a API 
 
 `./mvnw verify` roda os testes unitários (Surefire) e de integração (`*IT`, Failsafe, com SQLite em arquivo temporário) e falha se a cobertura de linhas ficar abaixo de 80% (hoje ~96%). `OrderFlowIT` percorre a jornada completa pela API (cadastro, login, criar, listar, buscar, avançar até `ENTREGUE` e a tentativa de cancelar) e `PersistenceRestartIT` sobe a aplicação duas vezes sobre o mesmo arquivo para provar a persistência.
 
-O workflow `.github/workflows/ci.yml` roda o job `backend` (Temurin 25, cache do Maven, `./mvnw verify`) em todo PR e em todo push na `main`, e publica os relatórios de teste e de cobertura como artefato.
+O workflow `.github/workflows/ci.yml` roda em todo PR e em todo push na `main`: o job `backend` (Temurin 25, cache do Maven, `./mvnw verify`) e o job `frontend` (Node 22, `npm ci`, `lint`, `test:coverage`, `build`), publicando os relatórios como artefato.
 
 ### Autenticação
 

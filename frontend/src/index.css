@@ -1,0 +1,269 @@
+/* Cores com contraste AA (>= 4.5:1 para texto) sobre os fundos em que são usadas. */
+:root {
+  --bg: #ffffff;
+  --bg-muted: #f3f4f6;
+  --text: #1a1a1a;
+  --text-muted: #4b5563;
+  --border: #6b7280;
+  --primary: #0b57d0;
+  --primary-text: #ffffff;
+  --danger: #b3261e;
+  --focus: #1a1a1a;
+  --focus-halo: #ffffff;
+  color-scheme: light;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  line-height: 1.5;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--primary);
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0 0 1rem;
+}
+
+/* Indicador de foco sempre visível (WCAG 2.4.7 / 2.4.11), com halo para funcionar em fundos escuros. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--focus-halo);
+}
+
+main {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+main:focus,
+h1:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  background: var(--bg);
+  border: 2px solid var(--focus);
+  border-radius: 0.25rem;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  margin: 0;
+  font-weight: 700;
+}
+
+.nav-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-user {
+  color: var(--text-muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.1rem;
+  border: 2px solid transparent;
+  border-radius: 0.375rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.btn-secondary {
+  background: var(--bg);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.btn[aria-disabled='true'] {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+.spinner-wrap {
+  display: inline-flex;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.field label {
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid var(--border);
+  border-radius: 0.375rem;
+  font: inherit;
+}
+
+.field input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.field-error {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.required {
+  color: var(--danger);
+}
+
+.error-summary {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 2px solid var(--danger);
+  border-radius: 0.375rem;
+}
+
+.error-summary-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: var(--danger);
+}
+
+.error-summary a {
+  color: var(--danger);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-recebido {
+  background: #e0e7ff;
+  color: #1e3a8a;
+}
+
+.badge-em_preparo {
+  background: #fef3c7;
+  color: #78350f;
+}
+
+.badge-saiu_para_entrega {
+  background: #cffafe;
+  color: #134e4a;
+}
+
+.badge-entregue {
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.badge-cancelado {
+  background: #fee2e2;
+  color: #7f1d1d;
+}

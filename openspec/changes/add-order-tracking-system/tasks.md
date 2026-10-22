@@ -74,14 +74,14 @@
 
 ## 9. Fundação do front-end
 
-- [ ] 9.1 Criar projeto Vite + React 19 + TypeScript `strict`, ESLint (+ `jsx-a11y`) e Prettier; verificar com `npm run build` e `npm run lint`
-- [ ] 9.2 Configurar Vitest + Testing Library + `user-event` + MSW + `vitest-axe`, `renderWithProviders` e meta de cobertura 70%; verificar com um teste de fumaça
-- [ ] 9.3 Implementar `apiClient` + `ApiError` (Problem Details tipado, `Authorization`, `401` → logout); verificar com testes unitários usando MSW
-- [ ] 9.4 Implementar `useAuthStore` (Zustand, `sessionStorage`, logout por `exp`); verificar com testes unitários
-- [ ] 9.5 Configurar providers, router (`/login`, `/register`, `/orders`, `/orders/new`) e `ProtectedRoute` com `redirect`; verificar com testes de redirecionamento sem sessão e após `401`
-- [ ] 9.6 Implementar `AppShell` (landmarks, `SkipLink`, `LiveRegion`, `useRouteAnnouncer`, ação "Sair"); verificar com testes de foco no `h1`, título do documento, skip link, logout e `axe` sem violações
-- [ ] 9.7 Implementar componentes `Button` (estado pendente com `aria-disabled`), `TextField`, `FormErrorSummary`, `Spinner`, `StatusBadge`; verificar cada um com teste de teclado/ARIA e `axe`
-- [ ] 9.8 Criar handlers MSW para os endpoints usados (sucesso e `400/401/409`); verificar uso nos testes das telas
+- [x] 9.1 Criar projeto Vite + React 19 + TypeScript `strict`, ESLint (+ `jsx-a11y`) e Prettier; verificar com `npm run build` e `npm run lint`
+- [x] 9.2 Configurar Vitest + Testing Library + `user-event` + MSW + `vitest-axe`, `renderWithProviders` e meta de cobertura 70%; verificar com um teste de fumaça
+- [x] 9.3 Implementar `apiClient` + `ApiError` (Problem Details tipado, `Authorization`, `401` → logout); verificar com testes unitários usando MSW
+- [x] 9.4 Implementar `useAuthStore` (Zustand, `sessionStorage`, logout por `exp`); verificar com testes unitários
+- [x] 9.5 Configurar providers, router (`/login`, `/register`, `/orders`, `/orders/new`) e `ProtectedRoute` com `redirect`; verificar com testes de redirecionamento sem sessão e após `401`
+- [x] 9.6 Implementar `AppShell` (landmarks, `SkipLink`, `LiveRegion`, `useRouteAnnouncer`, ação "Sair"); verificar com testes de foco no `h1`, título do documento, skip link, logout e `axe` sem violações
+- [x] 9.7 Implementar componentes `Button` (estado pendente com `aria-disabled`), `TextField`, `FormErrorSummary`, `Spinner`, `StatusBadge`; verificar cada um com teste de teclado/ARIA e `axe`
+- [x] 9.8 Criar handlers MSW para os endpoints usados (sucesso e `400/401/409`); verificar uso nos testes das telas
 - [ ] 9.9 Adicionar o job `frontend` ao CI (`npm ci`, `lint`, `test:coverage`, `build`); verificar execução verde no GitHub Actions
 - [ ] 9.10 Commitar (`feat(frontend): scaffold app shell, session and api client`, `ci: add frontend workflow`); verificar com `git log`
 
