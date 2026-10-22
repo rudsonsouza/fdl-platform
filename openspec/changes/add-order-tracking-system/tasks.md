@@ -82,13 +82,13 @@
 - [x] 9.6 Implementar `AppShell` (landmarks, `SkipLink`, `LiveRegion`, `useRouteAnnouncer`, ação "Sair"); verificar com testes de foco no `h1`, título do documento, skip link, logout e `axe` sem violações
 - [x] 9.7 Implementar componentes `Button` (estado pendente com `aria-disabled`), `TextField`, `FormErrorSummary`, `Spinner`, `StatusBadge`; verificar cada um com teste de teclado/ARIA e `axe`
 - [x] 9.8 Criar handlers MSW para os endpoints usados (sucesso e `400/401/409`); verificar uso nos testes das telas
-- [ ] 9.9 Adicionar o job `frontend` ao CI (`npm ci`, `lint`, `test:coverage`, `build`); verificar execução verde no GitHub Actions
-- [ ] 9.10 Commitar (`feat(frontend): scaffold app shell, session and api client`, `ci: add frontend workflow`); verificar com `git log`
+- [x] 9.9 Adicionar o job `frontend` ao CI (`npm ci`, `lint`, `test:coverage`, `build`); verificar execução verde no GitHub Actions
+- [x] 9.10 Commitar (`feat(frontend): scaffold app shell, session and api client`, `ci: add frontend workflow`); verificar com `git log`
 
 ## 10. Telas de autenticação
 
-- [ ] 10.1 Implementar schemas Zod de cadastro/login espelhando o spec `user-auth`; verificar com testes de cada caso inválido
-- [ ] 10.2 Implementar `RegisterPage` e `LoginPage` (React Hook Form, `autocomplete`, erros por campo, resumo focado, erro do servidor em `role="alert"`, cadastro → login com e-mail preenchido); verificar com testes de validação, mapeamento de `400/401/409`, redirecionamento pós-login, navegação por teclado e `axe`
+- [x] 10.1 Implementar schemas Zod de cadastro/login espelhando o spec `user-auth`; verificar com testes de cada caso inválido
+- [x] 10.2 Implementar `RegisterPage` e `LoginPage` (React Hook Form, `autocomplete`, erros por campo, resumo focado, erro do servidor em `role="alert"`, cadastro → login com e-mail preenchido); verificar com testes de validação, mapeamento de `400/401/409`, redirecionamento pós-login, navegação por teclado e `axe`
 - [ ] 10.3 Commitar (`feat(frontend): add login and registration`); verificar com `git log`
 
 ## 11. Telas de pedidos (lista e criação)
