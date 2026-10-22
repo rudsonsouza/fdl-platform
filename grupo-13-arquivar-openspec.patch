@@ -1,0 +1,686 @@
+diff --git a/README.md b/README.md
+index f2a76d6..3b0ebcb 100644
+--- a/README.md
++++ b/README.md
+@@ -162,14 +162,14 @@ docker-compose.yml, .env.example
+ 
+ ## Uso de IA
+ 
+-O projeto foi construído com apoio do Claude (Anthropic) seguindo o fluxo do OpenSpec: proposta, specs com cenários, design com decisões e alternativas, lista de tarefas e implementação guiada por ela, em `openspec/changes/add-order-tracking-system`. Cada tarefa tinha um critério de verificação, e cada grupo virou uma branch e um PR. Todo commit e todo push passaram por revisão e aprovação manual do autor, e o CI precisou ficar verde antes de cada merge. A IA escreveu e testou o código; as decisões de escopo e o aceite foram humanos.
++O projeto foi construído com apoio do Claude (Anthropic) seguindo o fluxo do OpenSpec: proposta, specs com cenários, design com decisões e alternativas, lista de tarefas e implementação guiada por ela, em `openspec/changes/archive/2026-10-22-add-order-tracking-system`; as specs vigentes estão em `openspec/specs`. Cada tarefa tinha um critério de verificação, e cada grupo virou uma branch e um PR. Todo commit e todo push passaram por revisão e aprovação manual do autor, e o CI precisou ficar verde antes de cada merge. A IA escreveu e testou o código; as decisões de escopo e o aceite foram humanos.
+ 
+ ## Contribuição
+ 
+ ### Estratégia de branch
+ 
+ - A `main` contém apenas trabalho revisado e integrado por Pull Request; não há commits diretos nela.
+-- Cada grupo de tarefas do `openspec/changes/add-order-tracking-system/tasks.md` é desenvolvido numa branch curta, nomeada pelo tipo e pelo escopo: `chore/repo-setup`, `feat/backend-auth`, `feat/frontend-orders`, etc.
++- Cada grupo de tarefas do `openspec/changes/archive/2026-10-22-add-order-tracking-system/tasks.md` é desenvolvido numa branch curta, nomeada pelo tipo e pelo escopo: `chore/repo-setup`, `feat/backend-auth`, `feat/frontend-orders`, etc.
+ - Ao fim do grupo, a branch vira um PR para a `main`. O merge é feito **sem squash**, para preservar o histórico incremental.
+ 
+ ### Commits
+diff --git a/docs/verificacao-cenarios-400.md b/docs/verificacao-cenarios-400.md
+index 06a08a9..00fc8ee 100644
+--- a/docs/verificacao-cenarios-400.md
++++ b/docs/verificacao-cenarios-400.md
+@@ -1,6 +1,6 @@
+ # Cobertura dos cenários 400
+ 
+-Cada cenário `400` das specs em `openspec/changes/add-order-tracking-system/specs` e o teste que o exercita. Os testes `*ValidationTest` são de fatia web (MockMvc, serviço simulado) e verificam também que o serviço **não** é chamado; `OrdersApiIT.invalidPayloadsPersistNothing` prova, com SQLite real, que nada é gravado.
++Cada cenário `400` das specs em `openspec/changes/archive/2026-10-22-add-order-tracking-system/specs` e o teste que o exercita. Os testes `*ValidationTest` são de fatia web (MockMvc, serviço simulado) e verificam também que o serviço **não** é chamado; `OrdersApiIT.invalidPayloadsPersistNothing` prova, com SQLite real, que nada é gravado.
+ 
+ Pacotes de teste: `auth/api/AuthControllerValidationTest`, `order/api/CreateOrderValidationTest`, `order/api/ListAndGetOrderValidationTest`, `order/api/UpdateStatusValidationTest`, `shared/error/ProblemDetailsTest`.
+ 
+diff --git a/grupo-13-verificacao-final.patch b/grupo-13-verificacao-final.patch
+deleted file mode 100644
+index d748421..0000000
+--- a/grupo-13-verificacao-final.patch
++++ /dev/null
+@@ -1,144 +0,0 @@
+-diff --git a/docs/revisao-seguranca.md b/docs/revisao-seguranca.md
+-new file mode 100644
+-index 0000000..1cccb23
+---- /dev/null
+-+++ b/docs/revisao-seguranca.md
+-@@ -0,0 +1,21 @@
+-+# Revisão de segurança
+-+
+-+Feita em 22/10/2026 sobre um clone limpo da `main`, com a pilha rodando (jar + nginx com a mesma configuração do contêiner).
+-+
+-+| Verificação | Como | Resultado |
+-+| --- | --- | --- |
+-+| Segredos versionados | `git grep` por `secret/password/token/api_key = "..."`, chaves AWS/GitHub/OpenAI e blocos `PRIVATE KEY` | Nenhum. Só aparecem os exemplos `openssl rand` do README |
+-+| Arquivos sensíveis no Git | `git ls-files` e histórico (`--diff-filter=A`) por `.env`, `*.db`, `*.pem`, `*.key`, `*.patch`, `*.zip` | Só `.env.example` (sem valores) e `frontend/.env.example` |
+-+| `.env` e banco ignorados | `git check-ignore -v .env backend/data/fdl.db` | Ambos ignorados |
+-+| Segredo do JWT | Sem `FDL_JWT_SECRET` (ou com menos de 32 caracteres) a aplicação não sobe; o valor fixo de `application-test.yml` só vale com o perfil `test` | Conforme |
+-+| Senha/token fora dos logs | 124 linhas de log de uma sessão completa (cadastro, login, criação, erros) varridas por senha, JWT, `Bearer`, hash BCrypt e pelo segredo; DTOs mascaram `toString` e `AuthFlowIT.failedLoginLeaksNeitherPasswordNorTokenToTheLogs` cobre em DEBUG | 0 ocorrências; e-mails também não aparecem |
+-+| CORS restrito | `OPTIONS` com `Origin: http://evil.example` e com `http://localhost:5173` | Primeira recusada (`403`), segunda devolve `Access-Control-Allow-Origin: http://localhost:5173`; origem configurável por `FDL_CORS_ORIGINS` |
+-+| Cabeçalhos do front-end | `curl -I` no nginx | CSP restrita à própria origem, `nosniff`, `no-referrer`, `X-Frame-Options: DENY`; a interface roda sem violações de CSP no console |
+-+| Contêineres | Dockerfiles | Back-end e nginx rodam sem root |
+-+
+-+## Pontos aceitos e documentados
+-+
+-+- O perfil padrão é `dev`, com log `DEBUG` do pacote `com.fdl.platform` (sem dados sensíveis, ver acima). Para um ambiente real, ajustar o perfil/nível de log.
+-+- Token em `sessionStorage` (TTL curto, CSP, sem `dangerouslySetInnerHTML`); evolução: cookie `HttpOnly`.
+-+- Cadastro revela e-mails já existentes (`409`).
+-+- Sem limite de tentativas de login nem refresh token/revogação (fora do escopo do desafio).
+-diff --git a/docs/verificacao-cenarios-400.md b/docs/verificacao-cenarios-400.md
+-new file mode 100644
+-index 0000000..06a08a9
+---- /dev/null
+-+++ b/docs/verificacao-cenarios-400.md
+-@@ -0,0 +1,51 @@
+-+# Cobertura dos cenários 400
+-+
+-+Cada cenário `400` das specs em `openspec/changes/add-order-tracking-system/specs` e o teste que o exercita. Os testes `*ValidationTest` são de fatia web (MockMvc, serviço simulado) e verificam também que o serviço **não** é chamado; `OrdersApiIT.invalidPayloadsPersistNothing` prova, com SQLite real, que nada é gravado.
+-+
+-+Pacotes de teste: `auth/api/AuthControllerValidationTest`, `order/api/CreateOrderValidationTest`, `order/api/ListAndGetOrderValidationTest`, `order/api/UpdateStatusValidationTest`, `shared/error/ProblemDetailsTest`.
+-+
+-+## user-auth
+-+
+-+| Cenário (spec) | Teste |
+-+| --- | --- |
+-+| Cadastro: corpo vazio | `AuthControllerValidationTest.emptyBodyListsNameEmailAndPassword` |
+-+| Cadastro: e-mail com formato inválido (e acima de 254) | `invalidEmailIsRejected`, `emailLongerThan254CharactersIsRejected` |
+-+| Cadastro: senha fraca ou fora do tamanho | `weakOrShortPasswordIsRejected`, `passwordWith73CharactersIsRejected`, `passwordUnder72CharactersButOver72BytesIsRejected` |
+-+| Cadastro: nome em branco ou longo demais | `blankOrTooShortNameIsRejected`, `nameWith101CharactersIsRejected` |
+-+| Cadastro: campo desconhecido | `unknownFieldIsMalformedRequest` |
+-+| Cadastro: JSON malformado | `malformedJsonIsMalformedRequest` |
+-+| Login: senha ausente | `loginWithoutPasswordNamesThePasswordField`, `loginWithEmptyPasswordIsRejected` |
+-+| Login: e-mail inválido | `loginWithInvalidEmailNamesTheEmailField` |
+-+| Login: JSON malformado | `loginWithMalformedJsonIsMalformedRequest` |
+-+
+-+## order-management
+-+
+-+| Cenário (spec) | Teste |
+-+| --- | --- |
+-+| Corpo vazio ou JSON malformado | `CreateOrderValidationTest.emptyBodyListsCustomerItemsAndAddress`, `malformedJsonIsMalformedRequest` |
+-+| Campos somente-servidor e desconhecidos | `serverOnlyAndUnknownFieldsAreRejected`, `unknownFieldInsideAnItemIsRejected` |
+-+| Cliente inválido | `missingCustomer`, `customerNameEmptyBlankOrTooShort`, `customerNameLongerThan100`, `customerPhoneMustBe10Or11Digits` |
+-+| Lista de itens inválida | `missingItems`, `emptyItems`, `moreThan50Items`, `nullItemInTheList` |
+-+| Item inválido | `itemNameEmptyOrBlank`, `itemWithoutName`, `itemNameLongerThan120`, `itemQuantityOutOfRange`, `itemWithoutQuantity`, `itemQuantityDecimalOrNonNumeric`, `itemUnitPriceOutOfRange`, `itemWithoutUnitPrice`, `errorsPointAtTheOffendingItemIndex` |
+-+| Endereço inválido | `missingAddress`, `requiredAddressTextFieldsCannotBeEmptyOrBlank`, `addressTextFieldsAbove120CharactersAreRejected`, `stateMustBeTwoUppercaseLetters`, `zipCodeMustHaveExactly8Digits` |
+-+| Parâmetros de listagem inválidos | `ListAndGetOrderValidationTest.invalidStatusFilterIsInvalidParameter`, `outOfRangePagingIsAValidationError`, `nonNumericPagingIsInvalidParameter`, `sortOutsideTheAllowlistIsAValidationError` |
+-+| ID em formato inválido | `getWithAnIdThatIsNotAUuidIsInvalidParameter`, `OrdersApiIT.unknownOrderIs404AndBadIdIs400` |
+-+| Erro de validação padronizado | `ProblemDetailsTest.everyErrorCarriesTypeTitleStatusDetailInstanceCodeAndTraceId`, `validationErrorsPointToTheNestedField` |
+-+| Nada é persistido | `OrdersApiIT.invalidPayloadsPersistNothing` |
+-+
+-+## order-status-lifecycle
+-+
+-+| Cenário (spec) | Teste |
+-+| --- | --- |
+-+| Status ausente ou nulo | `UpdateStatusValidationTest.missingOrNullStatusNamesTheStatusField` |
+-+| Status inexistente, grafia diferente, não textual | `unknownOrNonTextualStatusIsMalformedRequest` |
+-+| JSON malformado / campo desconhecido | `malformedJsonIsMalformedRequest`, `unknownFieldIsRejected` |
+-+| ID inválido | `idThatIsNotAUuidIsInvalidParameter` |
+-+| Pedido não muda quando rejeitado | `OrdersApiIT.rejectedTransitionsDoNotChangeTheOrderOrItsHistory` |
+-+
+-+## order-tracking-web
+-+
+-+| Cenário (spec) | Teste |
+-+| --- | --- |
+-+| `400` do servidor liga ao campo (`deliveryAddress.zipCode`, `items[0].unitPriceCents`) | `NewOrderPage.test.tsx` "mapeia erros 400 do servidor para os campos" |
+-+| Mesmas regras no cliente | `schemas.test.ts` (criação) e `features/auth/schemas.test.ts` |
+-diff --git a/openspec/changes/add-order-tracking-system/tasks.md b/openspec/changes/add-order-tracking-system/tasks.md
+-index 843114a..1b75f96 100644
+---- a/openspec/changes/add-order-tracking-system/tasks.md
+-+++ b/openspec/changes/add-order-tracking-system/tasks.md
+-@@ -50,7 +50,7 @@
+- - [x] 6.6 Escrever `AuthControllerValidationTest` (`@WebMvcTest`, parametrizado) cobrindo todos os cenários `400` dos requisitos de validação do spec `user-auth` (corpo vazio, JSON malformado, nome/e-mail/senha inválidos, campo desconhecido) e `415`; verificar `code`, `errors[].field` e `verifyNoInteractions(authService)`
+- - [x] 6.7 Verificar com teste de captura de logs que senha e token não aparecem em logs após login com falha
+- - [x] 6.8 Documentar endpoints de auth no OpenAPI (exemplos e erros) e verificar no `/v3/api-docs`
+--- [ ] 6.9 Commitar (`feat(backend): add registration, login and JWT security`); verificar com `git log`
+-+- [x] 6.9 Commitar (`feat(backend): add registration, login and JWT security`); verificar com `git log`
+- 
+- ## 7. API de pedidos
+- 
+-@@ -62,7 +62,7 @@
+- - [x] 7.6 Escrever `ListAndGetOrderValidationTest` cobrindo `status=INVALIDO`, `page=-1`, `size=0`, `size=501`, `sort=senha,asc` e `GET /orders/abc`; verificar `400` com `code` correto
+- - [x] 7.7 Escrever teste de concorrência (duas atualizações sobre a mesma versão) e verificar uma resposta `200` e outra `409 CONCURRENT_MODIFICATION`
+- - [x] 7.8 Documentar endpoints de pedidos no OpenAPI, incluindo a matriz de transições e o significado de `400`/`409` em `PATCH /orders/{id}/status`; verificar no Swagger UI
+--- [ ] 7.9 Commitar (`feat(backend): add orders API` e `test(backend): cover invalid payloads with 400`); verificar com `git log`
+-+- [x] 7.9 Commitar (`feat(backend): add orders API` e `test(backend): cover invalid payloads with 400`); verificar com `git log`
+- 
+- ## 8. Integração do back-end e CI
+- 
+-@@ -89,7 +89,7 @@
+- 
+- - [x] 10.1 Implementar schemas Zod de cadastro/login espelhando o spec `user-auth`; verificar com testes de cada caso inválido
+- - [x] 10.2 Implementar `RegisterPage` e `LoginPage` (React Hook Form, `autocomplete`, erros por campo, resumo focado, erro do servidor em `role="alert"`, cadastro → login com e-mail preenchido); verificar com testes de validação, mapeamento de `400/401/409`, redirecionamento pós-login, navegação por teclado e `axe`
+--- [ ] 10.3 Commitar (`feat(frontend): add login and registration`); verificar com `git log`
+-+- [x] 10.3 Commitar (`feat(frontend): add login and registration`); verificar com `git log`
+- 
+- ## 11. Telas de pedidos (lista e criação)
+- 
+-@@ -97,21 +97,21 @@
+- - [x] 11.2 Implementar `OrderListPage` (tabela com `caption`/`scope`, status atual via `StatusBadge`, filtro na URL, paginação quando necessário, botão "Atualizar", `aria-busy`, vazio, erro); verificar com testes de status exibido, filtro na URL, estados e `axe`
+- - [x] 11.3 Implementar `NewOrderPage` (`fieldset`s, `useFieldArray` com anúncio ao adicionar/remover, total em BRL, erros `400` do servidor nos campos, bloqueio de envio duplicado, retorno à lista com anúncio "Pedido criado"); verificar com testes de envio, total, validação, foco no resumo, anúncio de remoção, envio duplicado, fluxo só por teclado e `axe`
+- - [x] 11.4 Rodar `npm run test:coverage` e verificar cobertura ≥ 70%
+--- [ ] 11.5 Commitar (`feat(frontend): add order list and creation`); verificar com `git log`
+-+- [x] 11.5 Commitar (`feat(frontend): add order list and creation`); verificar com `git log`
+- 
+- ## 12. Entrega para avaliação
+- 
+--- [ ] 12.1 Criar `backend/Dockerfile` (multi-stage Maven → JRE 25) e `frontend/Dockerfile` (build Vite → nginx); verificar com `docker build` de cada um
+--- [ ] 12.2 Criar `docker-compose.yml` (volume `fdl-data`, `.env`, portas 8080/5173) e `.env.example`; verificar com `docker compose up --build` que login e lista funcionam no navegador
+-+- [x] 12.1 Criar `backend/Dockerfile` (multi-stage Maven → JRE 25) e `frontend/Dockerfile` (build Vite → nginx); verificar com `docker build` de cada um
+-+- [x] 12.2 Criar `docker-compose.yml` (volume `fdl-data`, `.env`, portas 8080/5173) e `.env.example`; verificar com `docker compose up --build` que login e lista funcionam no navegador
+- - [x] 12.3 Reescrever `README.md` com todas as seções do design D14 (incluindo roteiro `curl` com um `400` e um `409`, diagrama de status, decisões/trade-offs e "Uso de IA"); verificar executando o roteiro `curl` exatamente como escrito
+--- [ ] 12.4 Commitar (`chore: add docker compose setup`, `docs: write README for reviewers`); verificar com `git log`
+-+- [x] 12.4 Commitar (`chore: add docker compose setup`, `docs: write README for reviewers`); verificar com `git log`
+- 
+- ## 13. Verificação integrada
+- 
+--- [ ] 13.1 Cruzar cada cenário `400` dos specs com um teste existente (checklist no PR ou no README) e verificar que nenhum está sem cobertura
+--- [ ] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
+-+- [x] 13.1 Cruzar cada cenário `400` dos specs com um teste existente (checklist no PR ou no README) e verificar que nenhum está sem cobertura
+-+- [x] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
+- - [ ] 13.3 Verificar acessibilidade manual: todas as telas só por teclado, leitor de tela (VoiceOver/NVDA) nos formulários e na lista, zoom 200%
+--- [ ] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
+-+- [x] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
+- - [ ] 13.5 Verificar o histórico com `git log --oneline --graph`: commits incrementais por grupo, mensagens em Conventional Commits, CI verde no último commit da `main`
+- 
+- ## Workflow follow-up
+diff --git a/openspec/changes/add-order-tracking-system/.openspec.yaml b/openspec/changes/archive/2026-10-22-add-order-tracking-system/.openspec.yaml
+similarity index 100%
+rename from openspec/changes/add-order-tracking-system/.openspec.yaml
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/.openspec.yaml
+diff --git a/openspec/changes/add-order-tracking-system/design.md b/openspec/changes/archive/2026-10-22-add-order-tracking-system/design.md
+similarity index 100%
+rename from openspec/changes/add-order-tracking-system/design.md
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/design.md
+diff --git a/openspec/changes/add-order-tracking-system/proposal.md b/openspec/changes/archive/2026-10-22-add-order-tracking-system/proposal.md
+similarity index 100%
+rename from openspec/changes/add-order-tracking-system/proposal.md
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/proposal.md
+diff --git a/openspec/changes/add-order-tracking-system/specs/order-management/spec.md b/openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/order-management/spec.md
+similarity index 100%
+rename from openspec/changes/add-order-tracking-system/specs/order-management/spec.md
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/order-management/spec.md
+diff --git a/openspec/changes/add-order-tracking-system/specs/order-status-lifecycle/spec.md b/openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/order-status-lifecycle/spec.md
+similarity index 100%
+rename from openspec/changes/add-order-tracking-system/specs/order-status-lifecycle/spec.md
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/order-status-lifecycle/spec.md
+diff --git a/openspec/changes/add-order-tracking-system/specs/order-tracking-web/spec.md b/openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/order-tracking-web/spec.md
+similarity index 100%
+rename from openspec/changes/add-order-tracking-system/specs/order-tracking-web/spec.md
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/order-tracking-web/spec.md
+diff --git a/openspec/changes/add-order-tracking-system/specs/user-auth/spec.md b/openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/user-auth/spec.md
+similarity index 100%
+rename from openspec/changes/add-order-tracking-system/specs/user-auth/spec.md
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/specs/user-auth/spec.md
+diff --git a/openspec/changes/add-order-tracking-system/tasks.md b/openspec/changes/archive/2026-10-22-add-order-tracking-system/tasks.md
+similarity index 99%
+rename from openspec/changes/add-order-tracking-system/tasks.md
+rename to openspec/changes/archive/2026-10-22-add-order-tracking-system/tasks.md
+index 1b75f96..9088b12 100644
+--- a/openspec/changes/add-order-tracking-system/tasks.md
++++ b/openspec/changes/archive/2026-10-22-add-order-tracking-system/tasks.md
+@@ -112,7 +112,7 @@
+ - [x] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
+ - [ ] 13.3 Verificar acessibilidade manual: todas as telas só por teclado, leitor de tela (VoiceOver/NVDA) nos formulários e na lista, zoom 200%
+ - [x] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
+-- [ ] 13.5 Verificar o histórico com `git log --oneline --graph`: commits incrementais por grupo, mensagens em Conventional Commits, CI verde no último commit da `main`
++- [x] 13.5 Verificar o histórico com `git log --oneline --graph`: commits incrementais por grupo, mensagens em Conventional Commits, CI verde no último commit da `main`
+ 
+ ## Workflow follow-up
+ 
+diff --git a/openspec/specs/order-management/spec.md b/openspec/specs/order-management/spec.md
+new file mode 100644
+index 0000000..c596ab7
+--- /dev/null
++++ b/openspec/specs/order-management/spec.md
+@@ -0,0 +1,96 @@
++# order-management Specification
++
++## Purpose
++Permite que operadores autenticados registrem pedidos de delivery (cliente, itens e endereço de entrega), listem todos os pedidos e consultem um pedido específico, com validação rigorosa de entrada e erros padronizados.
++
++## Requirements
++
++### Requirement: Criação de pedido
++O sistema SHALL permitir que um usuário autenticado crie um pedido com dados do cliente (nome, telefone), uma lista de itens (nome, quantidade, preço unitário em centavos) e endereço de entrega. O pedido criado MUST ter identificador UUID, status `RECEBIDO`, total calculado pelo servidor e registro do usuário criador.
++
++#### Scenario: Pedido criado com sucesso
++- **WHEN** um usuário autenticado envia `POST /api/v1/orders` com cliente "Maria Silva"/"11987654321", itens [Pizza ×1 a 5490, Refrigerante ×2 a 1200] e endereço completo
++- **THEN** o sistema responde `201 Created` com cabeçalho `Location: /api/v1/orders/{id}`, `status` = `RECEBIDO` e `totalCents` = 7890
++
++#### Scenario: Total é sempre calculado pelo servidor
++- **WHEN** o payload de criação inclui `totalCents`
++- **THEN** o sistema responde `400` com `code` `MALFORMED_REQUEST` e nenhum pedido é criado
++
++### Requirement: Validação do payload de criação de pedido
++O sistema MUST rejeitar com `400 Bad Request` todo payload de criação inválido, sem persistir nada. As regras de cada campo estão nos cenários abaixo; campos desconhecidos ou somente-servidor (`id`, `status`, `totalCents`) não são aceitos.
++
++#### Scenario: Corpo vazio ou JSON malformado
++- **WHEN** o usuário envia `{}` ou um corpo que não é JSON válido
++- **THEN** o sistema responde `400`; para `{}` os campos `customer`, `items` e `deliveryAddress` aparecem em `errors`
++
++#### Scenario: Cliente inválido
++- **WHEN** `customer` está ausente, `customer.name` está vazio ou fora de 2–100 caracteres, ou `customer.phone` não tem só dígitos com 10–11 posições (ex.: "11abc", "119876543", "119876543210")
++- **THEN** o sistema responde `400` apontando o campo correspondente em `errors[].field`
++
++#### Scenario: Lista de itens inválida
++- **WHEN** `items` está ausente, vazia ou tem mais de 50 itens
++- **THEN** o sistema responde `400` com `errors[].field` = `items`
++
++#### Scenario: Item inválido
++- **WHEN** um item não tem `name`, tem `quantity` 0, negativa, maior que 99, decimal (1.5) ou não numérica ("dois"), ou tem `unitPriceCents` ausente, negativo ou acima de 10000000
++- **THEN** o sistema responde `400` apontando o campo do item (ex.: `items[0].quantity`)
++
++#### Scenario: Endereço inválido
++- **WHEN** `deliveryAddress` está ausente, `street`/`number`/`neighborhood`/`city` estão vazios ou acima de 120 caracteres, `state` não tem exatamente 2 letras maiúsculas ("sp", "SPA") ou `zipCode` não tem exatamente 8 dígitos ("01310-100", "123")
++- **THEN** o sistema responde `400` apontando o campo correspondente (ex.: `deliveryAddress.zipCode`)
++
++#### Scenario: Complemento é opcional
++- **WHEN** o endereço é enviado sem `complement`
++- **THEN** o pedido é criado normalmente
++
++### Requirement: Listagem de pedidos
++O sistema SHALL listar todos os pedidos para qualquer usuário autenticado, de forma paginada (padrão `page=0`, `size=100`, máximo 500), ordenada por data de criação decrescente por padrão, com filtro opcional por `status`. Cada item da lista MUST trazer id, cliente, status atual, total e datas de criação/atualização.
++
++#### Scenario: Listar todos
++- **WHEN** um usuário autenticado chama `GET /api/v1/orders` sem parâmetros e existem 30 pedidos
++- **THEN** o sistema responde `200` com os 30 pedidos numa única página e metadados `page`, `size`, `totalElements`, `totalPages`
++
++#### Scenario: Paginação explícita
++- **WHEN** existem 150 pedidos e o usuário chama `GET /api/v1/orders?page=1&size=100`
++- **THEN** o sistema retorna os 50 pedidos restantes com `totalElements` = 150 e `totalPages` = 2
++
++#### Scenario: Filtrar por status
++- **WHEN** o usuário chama `GET /api/v1/orders?status=EM_PREPARO`
++- **THEN** somente pedidos com status `EM_PREPARO` são retornados
++
++#### Scenario: Parâmetros de listagem inválidos
++- **WHEN** o usuário envia `status=INVALIDO`, `page=-1`, `size=0`, `size=501` ou `sort=senha,asc` (campo fora da lista permitida)
++- **THEN** o sistema responde `400` com `code` `INVALID_PARAMETER` ou `VALIDATION_ERROR`
++
++### Requirement: Consulta de pedido por ID
++O sistema SHALL retornar o pedido completo por ID — cliente, itens, endereço, total, status atual, histórico de status e transições permitidas a partir do status atual.
++
++#### Scenario: Pedido encontrado
++- **WHEN** um usuário autenticado chama `GET /api/v1/orders/{id}` com um ID existente
++- **THEN** o sistema responde `200` com todos os dados do pedido, incluindo `history` e `allowedTransitions`
++
++#### Scenario: Pedido inexistente
++- **WHEN** o usuário chama `GET /api/v1/orders/{id}` com um UUID que não existe
++- **THEN** o sistema responde `404 Not Found` com `code` `ORDER_NOT_FOUND`
++
++#### Scenario: ID em formato inválido
++- **WHEN** o usuário chama `GET /api/v1/orders/abc`
++- **THEN** o sistema responde `400` com `code` `INVALID_PARAMETER`
++
++### Requirement: Persistência durável
++Pedidos e usuários MUST ser persistidos em banco SQLite e permanecer disponíveis após reinício da aplicação.
++
++#### Scenario: Dados sobrevivem ao reinício
++- **WHEN** um pedido é criado e a aplicação é reiniciada apontando para o mesmo arquivo de banco
++- **THEN** `GET /api/v1/orders/{id}` retorna o mesmo pedido
++
++### Requirement: Formato padronizado de erro
++Toda resposta de erro da API MUST usar `Content-Type: application/problem+json` (RFC 9457) com `type`, `title`, `status`, `detail`, `instance`, um `code` estável e um `traceId`; erros de validação MUST incluir `errors` com `field` e `message`. Erros `500` MUST NOT expor stack trace.
++
++#### Scenario: Erro de validação padronizado
++- **WHEN** um payload inválido é enviado a qualquer endpoint
++- **THEN** a resposta `400` tem `Content-Type: application/problem+json`, `code` e a lista `errors`
++
++#### Scenario: Tipo de conteúdo não suportado
++- **WHEN** um cliente envia `POST /api/v1/orders` com `Content-Type: text/plain`
++- **THEN** o sistema responde `415 Unsupported Media Type` no formato padronizado
+diff --git a/openspec/specs/order-status-lifecycle/spec.md b/openspec/specs/order-status-lifecycle/spec.md
+new file mode 100644
+index 0000000..d2a9903
+--- /dev/null
++++ b/openspec/specs/order-status-lifecycle/spec.md
+@@ -0,0 +1,107 @@
++# order-status-lifecycle Specification
++
++## Purpose
++Define os estados de um pedido de delivery, as transições permitidas entre eles e o histórico de mudanças que permite rastrear cada pedido do recebimento à entrega ou cancelamento.
++
++## Requirements
++
++### Requirement: Estados do pedido
++Um pedido MUST estar sempre em exatamente um dos estados `RECEBIDO`, `EM_PREPARO`, `SAIU_PARA_ENTREGA`, `ENTREGUE` ou `CANCELADO`. Todo pedido novo MUST começar em `RECEBIDO`. `ENTREGUE` e `CANCELADO` são estados finais.
++
++#### Scenario: Estado inicial
++- **WHEN** um pedido é criado
++- **THEN** seu status é `RECEBIDO`
++
++### Requirement: Transições de status permitidas
++O sistema SHALL aceitar somente as transições: `RECEBIDO→EM_PREPARO`, `RECEBIDO→CANCELADO`, `EM_PREPARO→SAIU_PARA_ENTREGA`, `EM_PREPARO→CANCELADO` e `SAIU_PARA_ENTREGA→ENTREGUE`. Qualquer outra transição, inclusive para o mesmo estado ou a partir de estado final, MUST ser rejeitada com `409 Conflict` sem alterar o pedido.
++
++#### Scenario: Fluxo completo de entrega
++- **WHEN** o status de um pedido é alterado sucessivamente para `EM_PREPARO`, `SAIU_PARA_ENTREGA` e `ENTREGUE`
++- **THEN** cada requisição responde `200` e o status final é `ENTREGUE`
++
++#### Scenario: Cancelamento antes da saída
++- **WHEN** um pedido em `RECEBIDO` ou `EM_PREPARO` é alterado para `CANCELADO`
++- **THEN** o sistema responde `200` e o status passa a ser `CANCELADO`
++
++#### Scenario: Cancelamento após a saída
++- **WHEN** um pedido em `SAIU_PARA_ENTREGA` é alterado para `CANCELADO`
++- **THEN** o sistema responde `409` com `code` `INVALID_STATUS_TRANSITION` e o status permanece `SAIU_PARA_ENTREGA`
++
++#### Scenario: Resposta de conflito explica a regra
++- **WHEN** qualquer transição é rejeitada com `409`
++- **THEN** o corpo informa `currentStatus`, `requestedStatus` e `allowedTransitions`, e o `detail` descreve a transição recusada (ex.: "Não é possível ir de SAIU_PARA_ENTREGA para CANCELADO")
++
++#### Scenario: Regras publicadas na documentação da API
++- **WHEN** alguém consulta a documentação OpenAPI de `PATCH /api/v1/orders/{id}/status`
++- **THEN** a descrição lista as transições permitidas e o significado das respostas `400` e `409`
++
++#### Scenario: Pular etapa
++- **WHEN** um pedido em `RECEBIDO` é alterado diretamente para `ENTREGUE`
++- **THEN** o sistema responde `409` com `code` `INVALID_STATUS_TRANSITION`
++
++#### Scenario: Voltar etapa
++- **WHEN** um pedido em `SAIU_PARA_ENTREGA` é alterado para `EM_PREPARO`
++- **THEN** o sistema responde `409`
++
++#### Scenario: Estado final é imutável
++- **WHEN** um pedido em `ENTREGUE` ou `CANCELADO` recebe qualquer novo status
++- **THEN** o sistema responde `409` e o pedido não é alterado
++
++#### Scenario: Mesmo estado
++- **WHEN** um pedido em `EM_PREPARO` é alterado para `EM_PREPARO`
++- **THEN** o sistema responde `409`
++
++### Requirement: Atualização de status via API
++O sistema SHALL expor `PATCH /api/v1/orders/{id}/status` com corpo `{ "status": "<ESTADO>" }` para usuários autenticados, retornando o pedido atualizado. Pedido inexistente MUST resultar em `404`.
++
++#### Scenario: Atualização bem-sucedida
++- **WHEN** um usuário autenticado envia `{ "status": "EM_PREPARO" }` para um pedido em `RECEBIDO`
++- **THEN** o sistema responde `200` com o pedido em `EM_PREPARO` e `updatedAt` atualizado
++
++#### Scenario: Pedido inexistente
++- **WHEN** o usuário atualiza o status de um UUID que não existe
++- **THEN** o sistema responde `404` com `code` `ORDER_NOT_FOUND`
++
++### Requirement: Validação do payload de atualização de status
++O sistema MUST rejeitar com `400 Bad Request`, sem alterar o pedido, um payload de atualização de status vazio, sem `status`, com `status` nulo, com valor fora da lista de estados, com grafia diferente da oficial (minúsculas) ou com tipo não textual, e também um `{id}` que não seja UUID.
++
++#### Scenario: Status ausente ou nulo
++- **WHEN** o usuário envia `{}` ou `{ "status": null }`
++- **THEN** o sistema responde `400` com `errors[].field` = `status`
++
++#### Scenario: Status inexistente
++- **WHEN** o usuário envia `{ "status": "PRONTO" }`, `{ "status": "recebido" }` ou `{ "status": 1 }`
++- **THEN** o sistema responde `400` com `code` `MALFORMED_REQUEST`
++
++#### Scenario: ID inválido
++- **WHEN** o usuário chama `PATCH /api/v1/orders/abc/status`
++- **THEN** o sistema responde `400` com `code` `INVALID_PARAMETER`
++
++### Requirement: Histórico de status
++Cada pedido MUST manter um histórico ordenado cronologicamente com uma entrada na criação (`from` nulo → `RECEBIDO`) e uma entrada para cada transição aceita, contendo estado de origem, estado de destino, usuário responsável e data/hora em UTC. Transições rejeitadas MUST NOT gerar entrada.
++
++#### Scenario: Histórico após entrega
++- **WHEN** um pedido passa por `RECEBIDO → EM_PREPARO → SAIU_PARA_ENTREGA → ENTREGUE`
++- **THEN** `GET /api/v1/orders/{id}` retorna `history` com 4 entradas na ordem correta, cada uma com `changedBy` e `changedAt`
++
++#### Scenario: Transição rejeitada não gera histórico
++- **WHEN** uma transição inválida é tentada
++- **THEN** o número de entradas em `history` não muda
++
++### Requirement: Transições disponíveis
++A consulta de um pedido MUST informar em `allowedTransitions` os estados para os quais ele pode ir a partir do status atual (lista vazia para estados finais).
++
++#### Scenario: Transições a partir de EM_PREPARO
++- **WHEN** um pedido em `EM_PREPARO` é consultado
++- **THEN** `allowedTransitions` é `["SAIU_PARA_ENTREGA", "CANCELADO"]`
++
++#### Scenario: Estado final
++- **WHEN** um pedido em `ENTREGUE` é consultado
++- **THEN** `allowedTransitions` é uma lista vazia
++
++### Requirement: Atualizações concorrentes
++Quando duas atualizações de status do mesmo pedido concorrem, o sistema MUST aplicar no máximo uma delas com base na versão lida; a outra MUST receber `409 Conflict` com `code` `CONCURRENT_MODIFICATION`.
++
++#### Scenario: Conflito de versão
++- **WHEN** dois operadores alteram simultaneamente o status do mesmo pedido a partir da mesma versão
++- **THEN** uma requisição responde `200` e a outra `409` com `code` `CONCURRENT_MODIFICATION`
+diff --git a/openspec/specs/order-tracking-web/spec.md b/openspec/specs/order-tracking-web/spec.md
+new file mode 100644
+index 0000000..166ac57
+--- /dev/null
++++ b/openspec/specs/order-tracking-web/spec.md
+@@ -0,0 +1,125 @@
++# order-tracking-web Specification
++
++## Purpose
++Aplicação web pela qual operadores se cadastram, fazem login, listam os pedidos com seus status atuais e criam novos pedidos, utilizável integralmente por teclado e por tecnologias assistivas (WAI-ARIA, WCAG 2.2 AA).
++
++## Requirements
++
++### Requirement: Telas de cadastro e login
++A aplicação SHALL oferecer telas de cadastro (nome, e-mail, senha) e login (e-mail, senha), com link entre elas. Após cadastro bem-sucedido, o usuário MUST ser levado ao login com o e-mail preenchido. Após login bem-sucedido, MUST ser levado à rota que tentou acessar ou à lista de pedidos.
++
++#### Scenario: Login redireciona ao destino original
++- **WHEN** um visitante acessa `/orders/new`, é enviado ao login e se autentica com sucesso
++- **THEN** a aplicação o leva para `/orders/new`
++
++#### Scenario: Cadastro concluído
++- **WHEN** um visitante conclui o cadastro com sucesso
++- **THEN** a aplicação abre o login com o e-mail preenchido e anuncia que a conta foi criada
++
++#### Scenario: Credenciais inválidas
++- **WHEN** o servidor responde `401` ao login
++- **THEN** a aplicação exibe uma mensagem genérica de credenciais inválidas anunciada a leitores de tela
++
++#### Scenario: E-mail já cadastrado
++- **WHEN** o servidor responde `409` ao cadastro
++- **THEN** a mensagem aparece junto ao campo de e-mail, que fica marcado como inválido
++
++### Requirement: Rotas protegidas e sessão
++Todas as telas exceto login e cadastro MUST exigir sessão ativa. Ao expirar o token ou receber `401` da API, a aplicação MUST encerrar a sessão, redirecionar ao login e informar o motivo. A aplicação MUST oferecer ação de sair, e a sessão MUST ser descartada ao fechar a aba do navegador.
++
++#### Scenario: Acesso sem sessão
++- **WHEN** um visitante sem sessão abre `/orders`
++- **THEN** a aplicação redireciona para `/login?redirect=/orders`
++
++#### Scenario: Sessão expirada
++- **WHEN** a API responde `401` durante o uso
++- **THEN** a aplicação redireciona para o login e anuncia "Sua sessão expirou"
++
++#### Scenario: Sair
++- **WHEN** o usuário aciona "Sair"
++- **THEN** a sessão é descartada e a aplicação mostra o login
++
++### Requirement: Lista de pedidos com status atual
++A aplicação SHALL listar os pedidos em tabela com cliente, quantidade de itens, total (em reais), **status atual** e data de criação, mais recentes primeiro, com filtro por status refletido na URL e estados explícitos de carregamento, lista vazia e erro. Quando houver mais pedidos que o tamanho da página da API, MUST oferecer paginação.
++
++#### Scenario: Pedidos com status atual
++- **WHEN** um usuário autenticado abre `/orders` e existem pedidos em `RECEBIDO` e `EM_PREPARO`
++- **THEN** cada linha mostra o status atual do pedido em texto ("Recebido", "Em preparo")
++
++#### Scenario: Filtro preservado na URL
++- **WHEN** o usuário filtra por `EM_PREPARO`
++- **THEN** a URL contém `status=EM_PREPARO` e recarregar a página mantém o mesmo resultado
++
++#### Scenario: Lista vazia
++- **WHEN** não há pedidos para o filtro escolhido
++- **THEN** a aplicação exibe uma mensagem de lista vazia com atalho para criar pedido
++
++#### Scenario: Atualizar lista
++- **WHEN** o usuário aciona "Atualizar" ou volta à aba do navegador
++- **THEN** a lista é recarregada da API e reflete os status atuais
++
++### Requirement: Criação de pedido na interface
++A aplicação SHALL oferecer formulário com dados do cliente, itens dinâmicos (adicionar/remover, mínimo um) e endereço de entrega, mostrando o total em tempo real. A validação no cliente MUST espelhar as regras da API, e erros `400` retornados pelo servidor MUST ser exibidos junto aos campos correspondentes.
++
++#### Scenario: Pedido criado
++- **WHEN** o usuário preenche o formulário corretamente e envia
++- **THEN** a aplicação volta para a lista, anuncia "Pedido criado" e o novo pedido aparece com status "Recebido"
++
++#### Scenario: Total em tempo real
++- **WHEN** o usuário informa 2 itens de R$ 12,00 e 1 item de R$ 54,90
++- **THEN** o total exibido é R$ 78,90
++
++#### Scenario: Erro de validação do servidor
++- **WHEN** a API responde `400` com `errors[].field` = `deliveryAddress.zipCode`
++- **THEN** a mensagem aparece junto ao campo CEP, que fica marcado como inválido
++
++#### Scenario: Envio duplicado bloqueado
++- **WHEN** o usuário aciona "Criar pedido" duas vezes seguidas
++- **THEN** apenas uma requisição é enviada e o botão fica indisponível com `aria-disabled` enquanto ela está em andamento
++
++### Requirement: Estrutura e navegação acessíveis
++A aplicação MUST usar marcos semânticos (`header`, `nav`, `main`), um link "Pular para o conteúdo" como primeiro elemento focável e um único `h1` por tela. A cada troca de rota, o título do documento MUST ser atualizado e o foco movido para o `h1` da nova tela.
++
++#### Scenario: Troca de rota anunciada
++- **WHEN** o usuário navega da lista para o formulário de novo pedido
++- **THEN** o título da aba muda para "Novo pedido" e o foco vai para o `h1` da tela
++
++#### Scenario: Pular navegação
++- **WHEN** o usuário pressiona Tab ao carregar qualquer tela e ativa o primeiro link
++- **THEN** o foco vai para o conteúdo principal
++
++### Requirement: Formulários acessíveis
++Todo campo MUST ter rótulo visível associado. Campos inválidos MUST ter `aria-invalid="true"` e `aria-describedby` apontando para a mensagem de erro. Ao enviar com erros, um resumo de erros com links para os campos MUST receber o foco. Grupos de campos (cliente, itens, endereço) MUST usar `fieldset`/`legend`, e adicionar/remover itens MUST ser anunciado.
++
++#### Scenario: Envio com erros
++- **WHEN** o usuário envia o formulário de pedido com o CEP vazio
++- **THEN** o foco vai para o resumo de erros, que contém um link para o campo CEP, e o campo tem `aria-invalid="true"` ligado à mensagem
++
++#### Scenario: Remoção de item anunciada
++- **WHEN** o usuário remove o item 2
++- **THEN** uma região `aria-live` anuncia "Item 2 removido" e o foco vai para um controle próximo
++
++### Requirement: Componentes de dados e feedback acessíveis
++A tabela de pedidos MUST ter `caption` e cabeçalhos com `scope`; a paginação MUST ser um `nav` rotulado com `aria-current="page"`; o status MUST ser comunicado por texto, nunca só por cor; regiões em carregamento MUST ter `aria-busy`; mensagens de sucesso MUST usar região `aria-live="polite"` e erros `role="alert"`.
++
++#### Scenario: Sucesso anunciado
++- **WHEN** um pedido é criado com sucesso
++- **THEN** uma região `aria-live="polite"` anuncia "Pedido criado"
++
++#### Scenario: Status sem depender de cor
++- **WHEN** a lista é exibida em escala de cinza
++- **THEN** o status de cada pedido continua identificável pelo texto
++
++### Requirement: Operação por teclado
++Todas as funcionalidades MUST ser operáveis só por teclado, com indicador de foco visível e ordem de foco lógica.
++
++#### Scenario: Criar pedido só com teclado
++- **WHEN** o usuário preenche e envia o formulário de novo pedido usando apenas Tab, Shift+Tab, Enter e Espaço
++- **THEN** o pedido é criado e o foco sempre permanece visível
++
++### Requirement: Ausência de violações automáticas de acessibilidade
++Todas as telas e componentes compartilhados MUST passar na verificação automática do axe-core sem violações, e o contraste de texto MUST atender WCAG AA (4.5:1).
++
++#### Scenario: Verificação automática
++- **WHEN** cada tela é renderizada nos testes automatizados (incluindo estados de erro)
++- **THEN** a análise do axe-core não reporta violações
+diff --git a/openspec/specs/user-auth/spec.md b/openspec/specs/user-auth/spec.md
+new file mode 100644
+index 0000000..f9b2036
+--- /dev/null
++++ b/openspec/specs/user-auth/spec.md
+@@ -0,0 +1,107 @@
++# user-auth Specification
++
++## Purpose
++Garante que apenas operadores identificados acessem a plataforma, permitindo cadastro com nome, e-mail e senha e login por e-mail e senha com emissão de token de acesso.
++
++## Requirements
++
++### Requirement: Cadastro de usuário
++O sistema SHALL permitir o cadastro de um usuário informando nome, e-mail e senha, sem exigir autenticação prévia. O e-mail MUST ser único (comparação sem diferenciar maiúsculas/minúsculas) e a senha MUST ser armazenada apenas como hash irreversível. A resposta MUST NOT conter a senha nem o hash.
++
++#### Scenario: Cadastro bem-sucedido
++- **WHEN** um visitante envia `POST /api/v1/auth/register` com nome "Ana Souza", e-mail "ana@exemplo.com" e senha "segredo123"
++- **THEN** o sistema responde `201 Created` com `id`, `name` e `email` (em minúsculas) e sem campo de senha
++
++#### Scenario: E-mail já cadastrado
++- **WHEN** um visitante tenta cadastrar "ANA@exemplo.com" e "ana@exemplo.com" já existe
++- **THEN** o sistema responde `409 Conflict` com `code` `EMAIL_ALREADY_REGISTERED`
++
++#### Scenario: Senha não é armazenada em texto puro
++- **WHEN** um usuário é cadastrado com a senha "segredo123"
++- **THEN** o valor persistido para a senha é diferente de "segredo123" e é aceito pela verificação de hash
++
++### Requirement: Validação do payload de cadastro
++O sistema MUST rejeitar com `400 Bad Request` todo payload de cadastro inválido, sem criar usuário. Regras: `name` obrigatório com 2–100 caracteres não brancos; `email` obrigatório, formato válido, até 254 caracteres; `password` obrigatória com 8–72 caracteres, contendo ao menos uma letra e um dígito; campos desconhecidos não são aceitos.
++
++#### Scenario: Corpo vazio
++- **WHEN** o visitante envia `POST /api/v1/auth/register` com `{}`
++- **THEN** o sistema responde `400` listando em `errors` os campos `name`, `email` e `password`
++
++#### Scenario: E-mail com formato inválido
++- **WHEN** o visitante envia `email` igual a "abc"
++- **THEN** o sistema responde `400` com `errors[].field` = `email`
++
++#### Scenario: Senha fraca ou fora do tamanho
++- **WHEN** o visitante envia `password` igual a "1234567", "abcdefgh", "12345678" ou com 73 caracteres
++- **THEN** o sistema responde `400` com `errors[].field` = `password`
++
++#### Scenario: Nome em branco ou longo demais
++- **WHEN** o visitante envia `name` igual a "   " ou com 101 caracteres
++- **THEN** o sistema responde `400` com `errors[].field` = `name`
++
++#### Scenario: Campo desconhecido
++- **WHEN** o visitante envia um payload válido acrescido de `"role": "ADMIN"`
++- **THEN** o sistema responde `400` com `code` `MALFORMED_REQUEST` e nenhum usuário é criado
++
++#### Scenario: JSON malformado
++- **WHEN** o visitante envia um corpo que não é JSON válido
++- **THEN** o sistema responde `400` com `code` `MALFORMED_REQUEST`
++
++### Requirement: Login com e-mail e senha
++O sistema SHALL autenticar um usuário por e-mail e senha e, em caso de sucesso, emitir um token de acesso Bearer com validade limitada (padrão 60 minutos). Credenciais inválidas MUST receber a mesma resposta genérica, sem revelar se o e-mail existe.
++
++#### Scenario: Login bem-sucedido
++- **WHEN** um usuário cadastrado envia `POST /api/v1/auth/login` com e-mail e senha corretos
++- **THEN** o sistema responde `200 OK` com `accessToken`, `tokenType` = "Bearer" e `expiresIn` em segundos
++
++#### Scenario: Senha incorreta
++- **WHEN** o usuário envia a senha errada
++- **THEN** o sistema responde `401 Unauthorized` com `code` `INVALID_CREDENTIALS`
++
++#### Scenario: E-mail inexistente
++- **WHEN** alguém envia um e-mail não cadastrado
++- **THEN** o sistema responde `401 Unauthorized` com a mesma mensagem e `code` do cenário de senha incorreta
++
++### Requirement: Validação do payload de login
++O sistema MUST rejeitar com `400 Bad Request` o payload de login com `email` ausente ou inválido, `password` ausente ou vazia, ou JSON malformado, sem tentar autenticar.
++
++#### Scenario: Senha ausente
++- **WHEN** o visitante envia `POST /api/v1/auth/login` com apenas `email`
++- **THEN** o sistema responde `400` com `errors[].field` = `password`
++
++#### Scenario: E-mail inválido
++- **WHEN** o visitante envia `email` igual a "ana@"
++- **THEN** o sistema responde `400` com `errors[].field` = `email`
++
++### Requirement: Acesso restrito a usuários autenticados
++Todos os endpoints da API, exceto cadastro, login e verificação de saúde, MUST exigir um token de acesso válido no cabeçalho `Authorization: Bearer`. Requisições sem token, com token expirado ou com assinatura inválida MUST receber `401 Unauthorized` no formato de erro padronizado.
++
++#### Scenario: Requisição sem token
++- **WHEN** um cliente chama `GET /api/v1/orders` sem cabeçalho `Authorization`
++- **THEN** o sistema responde `401` com `code` `UNAUTHENTICATED`
++
++#### Scenario: Token expirado
++- **WHEN** um cliente chama `GET /api/v1/orders` com um token cuja validade terminou
++- **THEN** o sistema responde `401` com `code` `UNAUTHENTICATED`
++
++#### Scenario: Token adulterado
++- **WHEN** um cliente envia um token com assinatura inválida
++- **THEN** o sistema responde `401` com `code` `UNAUTHENTICATED`
++
++#### Scenario: Endpoints públicos
++- **WHEN** um visitante sem token chama `POST /api/v1/auth/register` ou `POST /api/v1/auth/login`
++- **THEN** a requisição é processada normalmente
++
++### Requirement: Consulta do usuário autenticado
++O sistema SHALL expor `GET /api/v1/auth/me`, que retorna `id`, `name` e `email` do usuário dono do token.
++
++#### Scenario: Dados do usuário logado
++- **WHEN** um usuário autenticado chama `GET /api/v1/auth/me`
++- **THEN** o sistema responde `200` com seus `id`, `name` e `email`
++
++### Requirement: Proteção de credenciais
++Senhas e tokens MUST NOT aparecer em logs nem em respostas de erro.
++
++#### Scenario: Falha de login não vaza senha
++- **WHEN** um login falha com a senha "segredo123"
++- **THEN** nem a resposta nem os logs da aplicação contêm "segredo123"

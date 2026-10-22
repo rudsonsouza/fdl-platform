@@ -162,14 +162,14 @@ docker-compose.yml, .env.example
 
 ## Uso de IA
 
-O projeto foi construído com apoio do Claude (Anthropic) seguindo o fluxo do OpenSpec: proposta, specs com cenários, design com decisões e alternativas, lista de tarefas e implementação guiada por ela, em `openspec/changes/add-order-tracking-system`. Cada tarefa tinha um critério de verificação, e cada grupo virou uma branch e um PR. Todo commit e todo push passaram por revisão e aprovação manual do autor, e o CI precisou ficar verde antes de cada merge. A IA escreveu e testou o código; as decisões de escopo e o aceite foram humanos.
+O projeto foi construído com apoio do Claude (Anthropic) seguindo o fluxo do OpenSpec: proposta, specs com cenários, design com decisões e alternativas, lista de tarefas e implementação guiada por ela, em `openspec/changes/archive/2026-10-22-add-order-tracking-system`; as specs vigentes estão em `openspec/specs`. Cada tarefa tinha um critério de verificação, e cada grupo virou uma branch e um PR. Todo commit e todo push passaram por revisão e aprovação manual do autor, e o CI precisou ficar verde antes de cada merge. A IA escreveu e testou o código; as decisões de escopo e o aceite foram humanos.
 
 ## Contribuição
 
 ### Estratégia de branch
 
 - A `main` contém apenas trabalho revisado e integrado por Pull Request; não há commits diretos nela.
-- Cada grupo de tarefas do `openspec/changes/add-order-tracking-system/tasks.md` é desenvolvido numa branch curta, nomeada pelo tipo e pelo escopo: `chore/repo-setup`, `feat/backend-auth`, `feat/frontend-orders`, etc.
+- Cada grupo de tarefas do `openspec/changes/archive/2026-10-22-add-order-tracking-system/tasks.md` é desenvolvido numa branch curta, nomeada pelo tipo e pelo escopo: `chore/repo-setup`, `feat/backend-auth`, `feat/frontend-orders`, etc.
 - Ao fim do grupo, a branch vira um PR para a `main`. O merge é feito **sem squash**, para preservar o histórico incremental.
 
 ### Commits
