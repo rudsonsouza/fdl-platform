@@ -1,0 +1,22 @@
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 27e8ae8..3eed532 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -14,8 +14,15 @@ services:
+     volumes:
+       - fdl-data:/app/data
+     healthcheck:
+-      # A imagem JRE não traz curl; o bash faz a requisição.
+-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '\"status\":\"UP\"' <&3"]
++      # A imagem JRE não traz curl; o bash (e não o sh, que não tem /dev/tcp) faz a requisição.
++      test:
++        - CMD
++        - bash
++        - -c
++        - |
++          exec 3<>/dev/tcp/127.0.0.1/8080
++          printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3
++          grep -q '"status":"UP"' <&3
+       interval: 10s
+       timeout: 5s
+       retries: 12

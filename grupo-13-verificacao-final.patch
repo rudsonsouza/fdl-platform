@@ -1,0 +1,144 @@
+diff --git a/docs/revisao-seguranca.md b/docs/revisao-seguranca.md
+new file mode 100644
+index 0000000..1cccb23
+--- /dev/null
++++ b/docs/revisao-seguranca.md
+@@ -0,0 +1,21 @@
++# Revisão de segurança
++
++Feita em 22/10/2026 sobre um clone limpo da `main`, com a pilha rodando (jar + nginx com a mesma configuração do contêiner).
++
++| Verificação | Como | Resultado |
++| --- | --- | --- |
++| Segredos versionados | `git grep` por `secret/password/token/api_key = "..."`, chaves AWS/GitHub/OpenAI e blocos `PRIVATE KEY` | Nenhum. Só aparecem os exemplos `openssl rand` do README |
++| Arquivos sensíveis no Git | `git ls-files` e histórico (`--diff-filter=A`) por `.env`, `*.db`, `*.pem`, `*.key`, `*.patch`, `*.zip` | Só `.env.example` (sem valores) e `frontend/.env.example` |
++| `.env` e banco ignorados | `git check-ignore -v .env backend/data/fdl.db` | Ambos ignorados |
++| Segredo do JWT | Sem `FDL_JWT_SECRET` (ou com menos de 32 caracteres) a aplicação não sobe; o valor fixo de `application-test.yml` só vale com o perfil `test` | Conforme |
++| Senha/token fora dos logs | 124 linhas de log de uma sessão completa (cadastro, login, criação, erros) varridas por senha, JWT, `Bearer`, hash BCrypt e pelo segredo; DTOs mascaram `toString` e `AuthFlowIT.failedLoginLeaksNeitherPasswordNorTokenToTheLogs` cobre em DEBUG | 0 ocorrências; e-mails também não aparecem |
++| CORS restrito | `OPTIONS` com `Origin: http://evil.example` e com `http://localhost:5173` | Primeira recusada (`403`), segunda devolve `Access-Control-Allow-Origin: http://localhost:5173`; origem configurável por `FDL_CORS_ORIGINS` |
++| Cabeçalhos do front-end | `curl -I` no nginx | CSP restrita à própria origem, `nosniff`, `no-referrer`, `X-Frame-Options: DENY`; a interface roda sem violações de CSP no console |
++| Contêineres | Dockerfiles | Back-end e nginx rodam sem root |
++
++## Pontos aceitos e documentados
++
++- O perfil padrão é `dev`, com log `DEBUG` do pacote `com.fdl.platform` (sem dados sensíveis, ver acima). Para um ambiente real, ajustar o perfil/nível de log.
++- Token em `sessionStorage` (TTL curto, CSP, sem `dangerouslySetInnerHTML`); evolução: cookie `HttpOnly`.
++- Cadastro revela e-mails já existentes (`409`).
++- Sem limite de tentativas de login nem refresh token/revogação (fora do escopo do desafio).
+diff --git a/docs/verificacao-cenarios-400.md b/docs/verificacao-cenarios-400.md
+new file mode 100644
+index 0000000..06a08a9
+--- /dev/null
++++ b/docs/verificacao-cenarios-400.md
+@@ -0,0 +1,51 @@
++# Cobertura dos cenários 400
++
++Cada cenário `400` das specs em `openspec/changes/add-order-tracking-system/specs` e o teste que o exercita. Os testes `*ValidationTest` são de fatia web (MockMvc, serviço simulado) e verificam também que o serviço **não** é chamado; `OrdersApiIT.invalidPayloadsPersistNothing` prova, com SQLite real, que nada é gravado.
++
++Pacotes de teste: `auth/api/AuthControllerValidationTest`, `order/api/CreateOrderValidationTest`, `order/api/ListAndGetOrderValidationTest`, `order/api/UpdateStatusValidationTest`, `shared/error/ProblemDetailsTest`.
++
++## user-auth
++
++| Cenário (spec) | Teste |
++| --- | --- |
++| Cadastro: corpo vazio | `AuthControllerValidationTest.emptyBodyListsNameEmailAndPassword` |
++| Cadastro: e-mail com formato inválido (e acima de 254) | `invalidEmailIsRejected`, `emailLongerThan254CharactersIsRejected` |
++| Cadastro: senha fraca ou fora do tamanho | `weakOrShortPasswordIsRejected`, `passwordWith73CharactersIsRejected`, `passwordUnder72CharactersButOver72BytesIsRejected` |
++| Cadastro: nome em branco ou longo demais | `blankOrTooShortNameIsRejected`, `nameWith101CharactersIsRejected` |
++| Cadastro: campo desconhecido | `unknownFieldIsMalformedRequest` |
++| Cadastro: JSON malformado | `malformedJsonIsMalformedRequest` |
++| Login: senha ausente | `loginWithoutPasswordNamesThePasswordField`, `loginWithEmptyPasswordIsRejected` |
++| Login: e-mail inválido | `loginWithInvalidEmailNamesTheEmailField` |
++| Login: JSON malformado | `loginWithMalformedJsonIsMalformedRequest` |
++
++## order-management
++
++| Cenário (spec) | Teste |
++| --- | --- |
++| Corpo vazio ou JSON malformado | `CreateOrderValidationTest.emptyBodyListsCustomerItemsAndAddress`, `malformedJsonIsMalformedRequest` |
++| Campos somente-servidor e desconhecidos | `serverOnlyAndUnknownFieldsAreRejected`, `unknownFieldInsideAnItemIsRejected` |
++| Cliente inválido | `missingCustomer`, `customerNameEmptyBlankOrTooShort`, `customerNameLongerThan100`, `customerPhoneMustBe10Or11Digits` |
++| Lista de itens inválida | `missingItems`, `emptyItems`, `moreThan50Items`, `nullItemInTheList` |
++| Item inválido | `itemNameEmptyOrBlank`, `itemWithoutName`, `itemNameLongerThan120`, `itemQuantityOutOfRange`, `itemWithoutQuantity`, `itemQuantityDecimalOrNonNumeric`, `itemUnitPriceOutOfRange`, `itemWithoutUnitPrice`, `errorsPointAtTheOffendingItemIndex` |
++| Endereço inválido | `missingAddress`, `requiredAddressTextFieldsCannotBeEmptyOrBlank`, `addressTextFieldsAbove120CharactersAreRejected`, `stateMustBeTwoUppercaseLetters`, `zipCodeMustHaveExactly8Digits` |
++| Parâmetros de listagem inválidos | `ListAndGetOrderValidationTest.invalidStatusFilterIsInvalidParameter`, `outOfRangePagingIsAValidationError`, `nonNumericPagingIsInvalidParameter`, `sortOutsideTheAllowlistIsAValidationError` |
++| ID em formato inválido | `getWithAnIdThatIsNotAUuidIsInvalidParameter`, `OrdersApiIT.unknownOrderIs404AndBadIdIs400` |
++| Erro de validação padronizado | `ProblemDetailsTest.everyErrorCarriesTypeTitleStatusDetailInstanceCodeAndTraceId`, `validationErrorsPointToTheNestedField` |
++| Nada é persistido | `OrdersApiIT.invalidPayloadsPersistNothing` |
++
++## order-status-lifecycle
++
++| Cenário (spec) | Teste |
++| --- | --- |
++| Status ausente ou nulo | `UpdateStatusValidationTest.missingOrNullStatusNamesTheStatusField` |
++| Status inexistente, grafia diferente, não textual | `unknownOrNonTextualStatusIsMalformedRequest` |
++| JSON malformado / campo desconhecido | `malformedJsonIsMalformedRequest`, `unknownFieldIsRejected` |
++| ID inválido | `idThatIsNotAUuidIsInvalidParameter` |
++| Pedido não muda quando rejeitado | `OrdersApiIT.rejectedTransitionsDoNotChangeTheOrderOrItsHistory` |
++
++## order-tracking-web
++
++| Cenário (spec) | Teste |
++| --- | --- |
++| `400` do servidor liga ao campo (`deliveryAddress.zipCode`, `items[0].unitPriceCents`) | `NewOrderPage.test.tsx` "mapeia erros 400 do servidor para os campos" |
++| Mesmas regras no cliente | `schemas.test.ts` (criação) e `features/auth/schemas.test.ts` |
+diff --git a/openspec/changes/add-order-tracking-system/tasks.md b/openspec/changes/add-order-tracking-system/tasks.md
+index 843114a..1b75f96 100644
+--- a/openspec/changes/add-order-tracking-system/tasks.md
++++ b/openspec/changes/add-order-tracking-system/tasks.md
+@@ -50,7 +50,7 @@
+ - [x] 6.6 Escrever `AuthControllerValidationTest` (`@WebMvcTest`, parametrizado) cobrindo todos os cenários `400` dos requisitos de validação do spec `user-auth` (corpo vazio, JSON malformado, nome/e-mail/senha inválidos, campo desconhecido) e `415`; verificar `code`, `errors[].field` e `verifyNoInteractions(authService)`
+ - [x] 6.7 Verificar com teste de captura de logs que senha e token não aparecem em logs após login com falha
+ - [x] 6.8 Documentar endpoints de auth no OpenAPI (exemplos e erros) e verificar no `/v3/api-docs`
+-- [ ] 6.9 Commitar (`feat(backend): add registration, login and JWT security`); verificar com `git log`
++- [x] 6.9 Commitar (`feat(backend): add registration, login and JWT security`); verificar com `git log`
+ 
+ ## 7. API de pedidos
+ 
+@@ -62,7 +62,7 @@
+ - [x] 7.6 Escrever `ListAndGetOrderValidationTest` cobrindo `status=INVALIDO`, `page=-1`, `size=0`, `size=501`, `sort=senha,asc` e `GET /orders/abc`; verificar `400` com `code` correto
+ - [x] 7.7 Escrever teste de concorrência (duas atualizações sobre a mesma versão) e verificar uma resposta `200` e outra `409 CONCURRENT_MODIFICATION`
+ - [x] 7.8 Documentar endpoints de pedidos no OpenAPI, incluindo a matriz de transições e o significado de `400`/`409` em `PATCH /orders/{id}/status`; verificar no Swagger UI
+-- [ ] 7.9 Commitar (`feat(backend): add orders API` e `test(backend): cover invalid payloads with 400`); verificar com `git log`
++- [x] 7.9 Commitar (`feat(backend): add orders API` e `test(backend): cover invalid payloads with 400`); verificar com `git log`
+ 
+ ## 8. Integração do back-end e CI
+ 
+@@ -89,7 +89,7 @@
+ 
+ - [x] 10.1 Implementar schemas Zod de cadastro/login espelhando o spec `user-auth`; verificar com testes de cada caso inválido
+ - [x] 10.2 Implementar `RegisterPage` e `LoginPage` (React Hook Form, `autocomplete`, erros por campo, resumo focado, erro do servidor em `role="alert"`, cadastro → login com e-mail preenchido); verificar com testes de validação, mapeamento de `400/401/409`, redirecionamento pós-login, navegação por teclado e `axe`
+-- [ ] 10.3 Commitar (`feat(frontend): add login and registration`); verificar com `git log`
++- [x] 10.3 Commitar (`feat(frontend): add login and registration`); verificar com `git log`
+ 
+ ## 11. Telas de pedidos (lista e criação)
+ 
+@@ -97,21 +97,21 @@
+ - [x] 11.2 Implementar `OrderListPage` (tabela com `caption`/`scope`, status atual via `StatusBadge`, filtro na URL, paginação quando necessário, botão "Atualizar", `aria-busy`, vazio, erro); verificar com testes de status exibido, filtro na URL, estados e `axe`
+ - [x] 11.3 Implementar `NewOrderPage` (`fieldset`s, `useFieldArray` com anúncio ao adicionar/remover, total em BRL, erros `400` do servidor nos campos, bloqueio de envio duplicado, retorno à lista com anúncio "Pedido criado"); verificar com testes de envio, total, validação, foco no resumo, anúncio de remoção, envio duplicado, fluxo só por teclado e `axe`
+ - [x] 11.4 Rodar `npm run test:coverage` e verificar cobertura ≥ 70%
+-- [ ] 11.5 Commitar (`feat(frontend): add order list and creation`); verificar com `git log`
++- [x] 11.5 Commitar (`feat(frontend): add order list and creation`); verificar com `git log`
+ 
+ ## 12. Entrega para avaliação
+ 
+-- [ ] 12.1 Criar `backend/Dockerfile` (multi-stage Maven → JRE 25) e `frontend/Dockerfile` (build Vite → nginx); verificar com `docker build` de cada um
+-- [ ] 12.2 Criar `docker-compose.yml` (volume `fdl-data`, `.env`, portas 8080/5173) e `.env.example`; verificar com `docker compose up --build` que login e lista funcionam no navegador
++- [x] 12.1 Criar `backend/Dockerfile` (multi-stage Maven → JRE 25) e `frontend/Dockerfile` (build Vite → nginx); verificar com `docker build` de cada um
++- [x] 12.2 Criar `docker-compose.yml` (volume `fdl-data`, `.env`, portas 8080/5173) e `.env.example`; verificar com `docker compose up --build` que login e lista funcionam no navegador
+ - [x] 12.3 Reescrever `README.md` com todas as seções do design D14 (incluindo roteiro `curl` com um `400` e um `409`, diagrama de status, decisões/trade-offs e "Uso de IA"); verificar executando o roteiro `curl` exatamente como escrito
+-- [ ] 12.4 Commitar (`chore: add docker compose setup`, `docs: write README for reviewers`); verificar com `git log`
++- [x] 12.4 Commitar (`chore: add docker compose setup`, `docs: write README for reviewers`); verificar com `git log`
+ 
+ ## 13. Verificação integrada
+ 
+-- [ ] 13.1 Cruzar cada cenário `400` dos specs com um teste existente (checklist no PR ou no README) e verificar que nenhum está sem cobertura
+-- [ ] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
++- [x] 13.1 Cruzar cada cenário `400` dos specs com um teste existente (checklist no PR ou no README) e verificar que nenhum está sem cobertura
++- [x] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
+ - [ ] 13.3 Verificar acessibilidade manual: todas as telas só por teclado, leitor de tela (VoiceOver/NVDA) nos formulários e na lista, zoom 200%
+-- [ ] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
++- [x] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
+ - [ ] 13.5 Verificar o histórico com `git log --oneline --graph`: commits incrementais por grupo, mensagens em Conventional Commits, CI verde no último commit da `main`
+ 
+ ## Workflow follow-up

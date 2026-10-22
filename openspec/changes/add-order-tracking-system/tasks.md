@@ -50,7 +50,7 @@
 - [x] 6.6 Escrever `AuthControllerValidationTest` (`@WebMvcTest`, parametrizado) cobrindo todos os cenários `400` dos requisitos de validação do spec `user-auth` (corpo vazio, JSON malformado, nome/e-mail/senha inválidos, campo desconhecido) e `415`; verificar `code`, `errors[].field` e `verifyNoInteractions(authService)`
 - [x] 6.7 Verificar com teste de captura de logs que senha e token não aparecem em logs após login com falha
 - [x] 6.8 Documentar endpoints de auth no OpenAPI (exemplos e erros) e verificar no `/v3/api-docs`
-- [ ] 6.9 Commitar (`feat(backend): add registration, login and JWT security`); verificar com `git log`
+- [x] 6.9 Commitar (`feat(backend): add registration, login and JWT security`); verificar com `git log`
 
 ## 7. API de pedidos
 
@@ -62,7 +62,7 @@
 - [x] 7.6 Escrever `ListAndGetOrderValidationTest` cobrindo `status=INVALIDO`, `page=-1`, `size=0`, `size=501`, `sort=senha,asc` e `GET /orders/abc`; verificar `400` com `code` correto
 - [x] 7.7 Escrever teste de concorrência (duas atualizações sobre a mesma versão) e verificar uma resposta `200` e outra `409 CONCURRENT_MODIFICATION`
 - [x] 7.8 Documentar endpoints de pedidos no OpenAPI, incluindo a matriz de transições e o significado de `400`/`409` em `PATCH /orders/{id}/status`; verificar no Swagger UI
-- [ ] 7.9 Commitar (`feat(backend): add orders API` e `test(backend): cover invalid payloads with 400`); verificar com `git log`
+- [x] 7.9 Commitar (`feat(backend): add orders API` e `test(backend): cover invalid payloads with 400`); verificar com `git log`
 
 ## 8. Integração do back-end e CI
 
@@ -89,7 +89,7 @@
 
 - [x] 10.1 Implementar schemas Zod de cadastro/login espelhando o spec `user-auth`; verificar com testes de cada caso inválido
 - [x] 10.2 Implementar `RegisterPage` e `LoginPage` (React Hook Form, `autocomplete`, erros por campo, resumo focado, erro do servidor em `role="alert"`, cadastro → login com e-mail preenchido); verificar com testes de validação, mapeamento de `400/401/409`, redirecionamento pós-login, navegação por teclado e `axe`
-- [ ] 10.3 Commitar (`feat(frontend): add login and registration`); verificar com `git log`
+- [x] 10.3 Commitar (`feat(frontend): add login and registration`); verificar com `git log`
 
 ## 11. Telas de pedidos (lista e criação)
 
@@ -97,21 +97,21 @@
 - [x] 11.2 Implementar `OrderListPage` (tabela com `caption`/`scope`, status atual via `StatusBadge`, filtro na URL, paginação quando necessário, botão "Atualizar", `aria-busy`, vazio, erro); verificar com testes de status exibido, filtro na URL, estados e `axe`
 - [x] 11.3 Implementar `NewOrderPage` (`fieldset`s, `useFieldArray` com anúncio ao adicionar/remover, total em BRL, erros `400` do servidor nos campos, bloqueio de envio duplicado, retorno à lista com anúncio "Pedido criado"); verificar com testes de envio, total, validação, foco no resumo, anúncio de remoção, envio duplicado, fluxo só por teclado e `axe`
 - [x] 11.4 Rodar `npm run test:coverage` e verificar cobertura ≥ 70%
-- [ ] 11.5 Commitar (`feat(frontend): add order list and creation`); verificar com `git log`
+- [x] 11.5 Commitar (`feat(frontend): add order list and creation`); verificar com `git log`
 
 ## 12. Entrega para avaliação
 
-- [ ] 12.1 Criar `backend/Dockerfile` (multi-stage Maven → JRE 25) e `frontend/Dockerfile` (build Vite → nginx); verificar com `docker build` de cada um
-- [ ] 12.2 Criar `docker-compose.yml` (volume `fdl-data`, `.env`, portas 8080/5173) e `.env.example`; verificar com `docker compose up --build` que login e lista funcionam no navegador
+- [x] 12.1 Criar `backend/Dockerfile` (multi-stage Maven → JRE 25) e `frontend/Dockerfile` (build Vite → nginx); verificar com `docker build` de cada um
+- [x] 12.2 Criar `docker-compose.yml` (volume `fdl-data`, `.env`, portas 8080/5173) e `.env.example`; verificar com `docker compose up --build` que login e lista funcionam no navegador
 - [x] 12.3 Reescrever `README.md` com todas as seções do design D14 (incluindo roteiro `curl` com um `400` e um `409`, diagrama de status, decisões/trade-offs e "Uso de IA"); verificar executando o roteiro `curl` exatamente como escrito
-- [ ] 12.4 Commitar (`chore: add docker compose setup`, `docs: write README for reviewers`); verificar com `git log`
+- [x] 12.4 Commitar (`chore: add docker compose setup`, `docs: write README for reviewers`); verificar com `git log`
 
 ## 13. Verificação integrada
 
-- [ ] 13.1 Cruzar cada cenário `400` dos specs com um teste existente (checklist no PR ou no README) e verificar que nenhum está sem cobertura
-- [ ] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
+- [x] 13.1 Cruzar cada cenário `400` dos specs com um teste existente (checklist no PR ou no README) e verificar que nenhum está sem cobertura
+- [x] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
 - [ ] 13.3 Verificar acessibilidade manual: todas as telas só por teclado, leitor de tela (VoiceOver/NVDA) nos formulários e na lista, zoom 200%
-- [ ] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
+- [x] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
 - [ ] 13.5 Verificar o histórico com `git log --oneline --graph`: commits incrementais por grupo, mensagens em Conventional Commits, CI verde no último commit da `main`
 
 ## Workflow follow-up
