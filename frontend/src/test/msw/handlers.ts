@@ -42,7 +42,7 @@ export interface OrderFixture {
   customerName: string
   status: OrderStatus
   totalCents: number
-  itemCount: number
+  totalItems: number
   createdAt: string
   updatedAt: string
 }
@@ -53,7 +53,7 @@ const seed: OrderFixture[] = [
     customerName: 'Maria Silva',
     status: 'RECEBIDO',
     totalCents: 7890,
-    itemCount: 2,
+    totalItems: 2,
     createdAt: '2026-01-02T10:00:00Z',
     updatedAt: '2026-01-02T10:00:00Z',
   },
@@ -62,7 +62,7 @@ const seed: OrderFixture[] = [
     customerName: 'João Pereira',
     status: 'EM_PREPARO',
     totalCents: 4500,
-    itemCount: 1,
+    totalItems: 1,
     createdAt: '2026-01-01T10:00:00Z',
     updatedAt: '2026-01-01T11:00:00Z',
   },
@@ -194,7 +194,7 @@ export const handlers = [
       customerName: body.customer?.name ?? '',
       status: 'RECEBIDO',
       totalCents: items.reduce((sum, i) => sum + i.quantity * i.unitPriceCents, 0),
-      itemCount: items.length,
+      totalItems: items.length,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }

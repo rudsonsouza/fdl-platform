@@ -93,10 +93,10 @@
 
 ## 11. Telas de pedidos (lista e criação)
 
-- [ ] 11.1 Implementar hooks `useOrders` (`refetchOnWindowFocus`) e `useCreateOrder` (invalidação de `['orders']`); verificar com testes de hooks usando MSW
-- [ ] 11.2 Implementar `OrderListPage` (tabela com `caption`/`scope`, status atual via `StatusBadge`, filtro na URL, paginação quando necessário, botão "Atualizar", `aria-busy`, vazio, erro); verificar com testes de status exibido, filtro na URL, estados e `axe`
-- [ ] 11.3 Implementar `NewOrderPage` (`fieldset`s, `useFieldArray` com anúncio ao adicionar/remover, total em BRL, erros `400` do servidor nos campos, bloqueio de envio duplicado, retorno à lista com anúncio "Pedido criado"); verificar com testes de envio, total, validação, foco no resumo, anúncio de remoção, envio duplicado, fluxo só por teclado e `axe`
-- [ ] 11.4 Rodar `npm run test:coverage` e verificar cobertura ≥ 70%
+- [x] 11.1 Implementar hooks `useOrders` (`refetchOnWindowFocus`) e `useCreateOrder` (invalidação de `['orders']`); verificar com testes de hooks usando MSW
+- [x] 11.2 Implementar `OrderListPage` (tabela com `caption`/`scope`, status atual via `StatusBadge`, filtro na URL, paginação quando necessário, botão "Atualizar", `aria-busy`, vazio, erro); verificar com testes de status exibido, filtro na URL, estados e `axe`
+- [x] 11.3 Implementar `NewOrderPage` (`fieldset`s, `useFieldArray` com anúncio ao adicionar/remover, total em BRL, erros `400` do servidor nos campos, bloqueio de envio duplicado, retorno à lista com anúncio "Pedido criado"); verificar com testes de envio, total, validação, foco no resumo, anúncio de remoção, envio duplicado, fluxo só por teclado e `axe`
+- [x] 11.4 Rodar `npm run test:coverage` e verificar cobertura ≥ 70%
 - [ ] 11.5 Commitar (`feat(frontend): add order list and creation`); verificar com `git log`
 
 ## 12. Entrega para avaliação

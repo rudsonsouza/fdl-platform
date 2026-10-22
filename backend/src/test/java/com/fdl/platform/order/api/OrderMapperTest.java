@@ -67,7 +67,7 @@ class OrderMapperTest {
         var summary = OrderMapper.toSummary(order);
 
         assertThat(summary).isEqualTo(new OrderSummaryResponse(order.getId(), "Maria Silva", OrderStatus.RECEBIDO,
-                7890, order.getCreatedAt(), order.getUpdatedAt()));
+                3, 7890, order.getCreatedAt(), order.getUpdatedAt()));
     }
 
     @Test

@@ -69,6 +69,8 @@ class OrderFlowIT {
                 assertThat(row.get("status").asString()).isEqualTo("RECEBIDO");
                 assertThat(row.get("customerName").asString()).isEqualTo("Maria Silva");
                 assertThat(row.get("totalCents").asLong()).isEqualTo(7890);
+                // 1 pizza + 2 refrigerantes: a listagem soma as quantidades sem carregar os itens
+                assertThat(row.get("totalItems").asInt()).isEqualTo(3);
             }
         }
         assertThat(found).isTrue();

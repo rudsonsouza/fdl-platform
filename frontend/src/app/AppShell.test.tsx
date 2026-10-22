@@ -37,7 +37,7 @@ describe('AppShell', () => {
     await screen.findByRole('heading', { level: 1, name: 'Pedidos' })
     expect(document.title).toBe('Pedidos')
 
-    await user.click(screen.getByRole('link', { name: 'Novo pedido' }))
+    await user.click(within(screen.getByRole('banner')).getByRole('link', { name: 'Novo pedido' }))
 
     const heading = await screen.findByRole('heading', { level: 1, name: 'Novo pedido' })
     await waitFor(() => {

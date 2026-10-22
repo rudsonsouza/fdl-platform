@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -47,6 +48,13 @@ public class Order {
 
     @Column(name = "total_cents", nullable = false, columnDefinition = "INTEGER")
     private long totalCents;
+
+    /**
+     * Unidades somadas de todos os itens. Calculado pelo banco ao ler (a listagem não carrega os itens);
+     * em memória, {@link #create} já preenche o valor.
+     */
+    @Formula("(select coalesce(sum(i.quantity), 0) from order_items i where i.order_id = id)")
+    private int totalItems;
 
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "created_by", nullable = false)
@@ -92,6 +100,7 @@ public class Order {
             order.items.add(new OrderItem(order, order.items.size(), newItem));
         }
         order.totalCents = order.items.stream().mapToLong(OrderItem::subtotalCents).reduce(0L, Math::addExact);
+        order.totalItems = order.items.stream().mapToInt(OrderItem::getQuantity).sum();
         order.recordHistory(null, OrderStatus.RECEBIDO, createdBy, now);
         return order;
     }
@@ -140,6 +149,10 @@ public class Order {
 
     public long getTotalCents() {
         return totalCents;
+    }
+
+    public int getTotalItems() {
+        return totalItems;
     }
 
     public UUID getCreatedBy() {
