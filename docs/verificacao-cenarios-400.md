@@ -1,6 +1,6 @@
 # Cobertura dos cenários 400
 
-Cada cenário `400` das specs em `openspec/changes/add-order-tracking-system/specs` e o teste que o exercita. Os testes `*ValidationTest` são de fatia web (MockMvc, serviço simulado) e verificam também que o serviço **não** é chamado; `OrdersApiIT.invalidPayloadsPersistNothing` prova, com SQLite real, que nada é gravado.
+Cada cenário `400` das specs em `openspec/changes/archive/2026-10-22-add-order-tracking-system/specs` e o teste que o exercita. Os testes `*ValidationTest` são de fatia web (MockMvc, serviço simulado) e verificam também que o serviço **não** é chamado; `OrdersApiIT.invalidPayloadsPersistNothing` prova, com SQLite real, que nada é gravado.
 
 Pacotes de teste: `auth/api/AuthControllerValidationTest`, `order/api/CreateOrderValidationTest`, `order/api/ListAndGetOrderValidationTest`, `order/api/UpdateStatusValidationTest`, `shared/error/ProblemDetailsTest`.
 

@@ -112,7 +112,7 @@
 - [x] 13.2 Executar a partir de um clone limpo do GitHub: `docker compose up --build`, cadastro → login → criar pedido → ver na lista com status `Recebido` → alterar status via `curl` → "Atualizar" mostra o novo status; reiniciar os contêineres e verificar persistência
 - [ ] 13.3 Verificar acessibilidade manual: todas as telas só por teclado, leitor de tela (VoiceOver/NVDA) nos formulários e na lista, zoom 200%
 - [x] 13.4 Revisar segurança (sem segredos versionados, `.env` ignorado, senha/token fora de logs, CORS restrito) e verificar com `git grep` por segredos e nos logs da execução
-- [ ] 13.5 Verificar o histórico com `git log --oneline --graph`: commits incrementais por grupo, mensagens em Conventional Commits, CI verde no último commit da `main`
+- [x] 13.5 Verificar o histórico com `git log --oneline --graph`: commits incrementais por grupo, mensagens em Conventional Commits, CI verde no último commit da `main`
 
 ## Workflow follow-up
 
