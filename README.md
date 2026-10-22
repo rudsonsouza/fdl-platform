@@ -35,6 +35,8 @@ npm run build
 
 Estrutura de `src/`: `app/` (roteador, providers, `AppShell`), `features/` (auth, orders), `shared/` (`api` com `apiClient`/`ApiError`, `session`, `ui`, `a11y`, `lib`) e `test/` (setup, handlers MSW, `renderWithProviders`). Componentes não chamam `fetch`: tudo passa pelo `apiClient`, que injeta o `Authorization`, converte `application/problem+json` em `ApiError` e encerra a sessão num `401`.
 
+Telas de autenticação (`/login` e `/register`): formulários com React Hook Form + Zod, cujos schemas espelham as regras da API (nome 2–100, e-mail válido até 254, senha 8–72 caracteres e 72 bytes, com letra e dígito). Erros de validação ficam junto de cada campo (`aria-invalid` + `aria-describedby`) e num resumo que recebe o foco; `400` do servidor é ligado ao campo pelo `errors[].field`, `409` marca o e-mail e `401` mostra uma mensagem única ("E-mail ou senha inválidos."). Depois do cadastro o login abre com o e-mail preenchido e anuncia "Conta criada"; depois do login o usuário volta à rota que tentou acessar (`?redirect=`, aceitando só caminhos internos).
+
 Acessibilidade por construção: link "Pular para o conteúdo", marcos `header`/`nav`/`main`, um `h1` por tela com título do documento e foco atualizados a cada rota, região `aria-live` global, `Button` com `aria-disabled` no estado pendente, `TextField` com `aria-invalid`/`aria-describedby` e `FormErrorSummary` focado. Os testes rodam o axe nas telas e nos componentes.
 
 ## Back-end
