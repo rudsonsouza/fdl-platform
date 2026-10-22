@@ -1,5 +1,168 @@
-# fdl-platform
-Food Delivery Challenge
+# Mini Rastreador de Pedidos
+
+Aplicação de rastreamento de pedidos de delivery: uma API REST (Java + Spring Boot + SQLite) com cadastro e login, criação e listagem de pedidos e atualização de status com regras de transição, e uma interface React acessível que lista os pedidos com o status atual e permite criar novos.
+
+| Camada | Tecnologias |
+| --- | --- |
+| API | Java 25, Spring Boot 4.1.1, Spring Security (JWT HS256), Hibernate 7, Flyway, SQLite, springdoc (Swagger) |
+| Interface | React 19, TypeScript estrito, Vite, TanStack Query, Zustand, React Hook Form + Zod |
+| Testes | JUnit 5 + testes de integração com SQLite real (cobertura mínima de 80%); Vitest + Testing Library + MSW + axe (mínimo de 70%) |
+| Entrega | Docker Compose (nginx + JRE 25), GitHub Actions |
+
+## Como rodar
+
+### Com Docker (recomendado)
+
+Pré-requisito: Docker com Compose v2.
+
+```bash
+cp .env.example .env
+```
+
+Edite o `.env` e preencha `FDL_JWT_SECRET` com o resultado de:
+
+```bash
+openssl rand -base64 32
+```
+
+Depois:
+
+```bash
+docker compose up --build
+```
+
+- Interface: http://localhost:5173 (crie uma conta em "Cadastrar" e entre)
+- API: http://localhost:8080/api/v1
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- Saúde: http://localhost:8080/actuator/health
+
+O banco SQLite fica no volume `fdl-data`, então os dados sobrevivem a `docker compose down` e a reinícios. Para começar do zero: `docker compose down -v`.
+
+O nginx do contêiner `frontend` serve a interface, repassa `/api/` ao back-end (o navegador fala só com a própria origem, sem CORS) e envia cabeçalhos de segurança, incluindo uma Content-Security-Policy que só aceita recursos da própria origem.
+
+### Sem Docker
+
+Pré-requisitos: JDK 25 e Node 22.
+
+```bash
+cd backend
+export FDL_JWT_SECRET="$(openssl rand -base64 48)"
+./mvnw spring-boot:run
+```
+
+Em outro terminal:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+A interface abre em http://localhost:5173 e o Vite repassa `/api` para o back-end em `:8080`.
+
+### Testes e cobertura
+
+```bash
+cd backend && ./mvnw verify
+cd frontend && npm run lint && npm run test:coverage && npm run build
+```
+
+O relatório do JaCoCo fica em `backend/target/site/jacoco/index.html` e o do Vitest em `frontend/coverage/index.html`. O CI (`.github/workflows/ci.yml`) repete tudo isso a cada PR.
+
+## Roteiro com curl
+
+Com a API no ar (por Docker ou não), cole o bloco inteiro num terminal bash. Ele cobre cadastro, login, criação, listagem, busca e atualização de status, e termina com um `400` e dois `409`. Cada execução usa um e-mail novo.
+
+```bash
+API=http://localhost:8080/api/v1
+EMAIL="avaliador-$RANDOM@exemplo.com"
+
+# 1. Cadastro (201)
+curl -s -X POST $API/auth/register -H 'Content-Type: application/json' \
+  -d "{\"name\":\"Avaliador\",\"email\":\"$EMAIL\",\"password\":\"senha1234\"}"
+
+# 2. Login (200) e captura do token
+TOKEN=$(curl -s -X POST $API/auth/login -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"senha1234\"}" | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')
+
+# 3. Criar pedido (201, status RECEBIDO)
+curl -s -X POST $API/orders -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{
+  "customer": {"name": "Maria Silva", "phone": "11987654321"},
+  "items": [{"name": "Pizza", "quantity": 2, "unitPriceCents": 4500}],
+  "deliveryAddress": {"street": "Av. Paulista", "number": "1000", "neighborhood": "Bela Vista",
+                      "city": "São Paulo", "state": "SP", "zipCode": "01310100"}
+}' | tee /tmp/pedido.json
+ORDER_ID=$(sed -n 's/^{"id":"\([^"]*\)".*/\1/p' /tmp/pedido.json)
+
+# 4. Listar e buscar
+curl -s "$API/orders?status=RECEBIDO" -H "Authorization: Bearer $TOKEN"
+curl -s $API/orders/$ORDER_ID -H "Authorization: Bearer $TOKEN"
+
+# 5. Atualizar status (200)
+curl -s -X PATCH $API/orders/$ORDER_ID/status -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"status":"EM_PREPARO"}'
+
+# 6. Erro 400: quantidade zero
+curl -s -X POST $API/orders -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{
+  "customer": {"name": "Maria Silva", "phone": "11987654321"},
+  "items": [{"name": "Pizza", "quantity": 0, "unitPriceCents": 4500}],
+  "deliveryAddress": {"street": "Av. Paulista", "number": "1000", "neighborhood": "Bela Vista",
+                      "city": "São Paulo", "state": "SP", "zipCode": "01310100"}
+}'
+
+# 7. Erro 409: pular etapas (EM_PREPARO -> ENTREGUE não é permitido)
+curl -s -X PATCH $API/orders/$ORDER_ID/status -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"status":"ENTREGUE"}'
+
+# 8. Erro 409: e-mail já cadastrado
+curl -s -X POST $API/auth/register -H 'Content-Type: application/json' \
+  -d "{\"name\":\"Avaliador\",\"email\":\"$EMAIL\",\"password\":\"senha1234\"}"
+```
+
+Respostas de erro seguem o RFC 9457 (`application/problem+json`) com `code` estável e `traceId`; veja a seção [Erros](#erros).
+
+## Ciclo de vida do status
+
+```mermaid
+stateDiagram-v2
+    [*] --> RECEBIDO
+    RECEBIDO --> EM_PREPARO
+    RECEBIDO --> CANCELADO
+    EM_PREPARO --> SAIU_PARA_ENTREGA
+    EM_PREPARO --> CANCELADO
+    SAIU_PARA_ENTREGA --> ENTREGUE
+    ENTREGUE --> [*]
+    CANCELADO --> [*]
+```
+
+Qualquer transição fora do diagrama responde `409 INVALID_STATUS_TRANSITION`, com o status atual e as transições permitidas no corpo. Payload inválido responde `400`.
+
+## Decisões e trade-offs
+
+- **Regras no domínio.** A máquina de estados fica no enum `OrderStatus` e o agregado `Order` não depende de Spring, então as regras são testáveis sem subir nada. Transição inválida é conflito de estado (`409`); payload inválido é erro do cliente (`400`).
+- **Dinheiro em centavos inteiros e IDs UUID.** Evita erro de ponto flutuante e IDs previsíveis. A interface aceita reais ("12,50") e converte na borda.
+- **SQLite com pool de 1 conexão e WAL.** O SQLite aceita um escritor por vez; uma conexão evita `SQLITE_BUSY` dentro da aplicação. É adequado para o desafio e não para escrita concorrente pesada. O schema é versionado por Flyway e validado pelo Hibernate (`ddl-auto=validate`).
+- **Concorrência otimista.** `@Version` no pedido: duas atualizações a partir da mesma versão aplicam uma só e a outra recebe `409 CONCURRENT_MODIFICATION`.
+- **Validação estrita na borda.** Jackson 3 rejeita campos desconhecidos, coerção de tipos e enum inválido, o que evita payloads ambíguos passando em silêncio.
+- **JWT stateless.** Resource Server do Spring, HS256 com segredo obrigatório e TTL curto. Sem refresh token nem revogação, por escopo. No front-end o token fica em `sessionStorage` (legível por script em caso de XSS), mitigado por React escapando a saída, sem `dangerouslySetInnerHTML` e pela CSP do nginx; a evolução natural é um cookie `HttpOnly`.
+- **Cadastro revela e-mails existentes** (`409`). Troca consciente de privacidade por usabilidade, documentada.
+- **Paginação.** A lista devolve 100 por página por padrão (máximo 500) com `totalElements`/`totalPages`, e a interface pagina. Sem paginação, uma lista grande derrubaria o navegador.
+- **Acessibilidade por construção.** Link para pular ao conteúdo, foco no `h1` a cada rota, região `aria-live`, formulários com resumo de erros focado, status sempre em texto e não só em cor, e `axe` nos testes.
+- **Front-end e API na mesma origem no Docker.** O nginx faz o proxy de `/api/`, o que dispensa CORS e permite uma CSP restritiva. O CORS do back-end continua configurável (`FDL_CORS_ORIGINS`) para quem serve a interface em outro lugar.
+
+## Estrutura de pastas
+
+```text
+backend/    API Spring Boot (auth, user, order/{api,domain,service,repository}, shared, db/migration)
+frontend/   Interface React (app, features/{auth,orders}, shared, test)
+openspec/   Proposta, design, specs e tarefas que guiaram a implementação
+.github/    Workflow de CI
+docker-compose.yml, .env.example
+```
+
+## Uso de IA
+
+O projeto foi construído com apoio do Claude (Anthropic) seguindo o fluxo do OpenSpec: proposta, specs com cenários, design com decisões e alternativas, lista de tarefas e implementação guiada por ela, em `openspec/changes/add-order-tracking-system`. Cada tarefa tinha um critério de verificação, e cada grupo virou uma branch e um PR. Todo commit e todo push passaram por revisão e aprovação manual do autor, e o CI precisou ficar verde antes de cada merge. A IA escreveu e testou o código; as decisões de escopo e o aceite foram humanos.
 
 ## Contribuição
 
