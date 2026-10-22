@@ -103,7 +103,7 @@
 
 - [ ] 12.1 Criar `backend/Dockerfile` (multi-stage Maven → JRE 25) e `frontend/Dockerfile` (build Vite → nginx); verificar com `docker build` de cada um
 - [ ] 12.2 Criar `docker-compose.yml` (volume `fdl-data`, `.env`, portas 8080/5173) e `.env.example`; verificar com `docker compose up --build` que login e lista funcionam no navegador
-- [ ] 12.3 Reescrever `README.md` com todas as seções do design D14 (incluindo roteiro `curl` com um `400` e um `409`, diagrama de status, decisões/trade-offs e "Uso de IA"); verificar executando o roteiro `curl` exatamente como escrito
+- [x] 12.3 Reescrever `README.md` com todas as seções do design D14 (incluindo roteiro `curl` com um `400` e um `409`, diagrama de status, decisões/trade-offs e "Uso de IA"); verificar executando o roteiro `curl` exatamente como escrito
 - [ ] 12.4 Commitar (`chore: add docker compose setup`, `docs: write README for reviewers`); verificar com `git log`
 
 ## 13. Verificação integrada

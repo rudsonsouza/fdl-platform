@@ -1,0 +1,45 @@
+# Sobe API (http://localhost:8080) e interface (http://localhost:5173).
+# Antes: cp .env.example .env e defina FDL_JWT_SECRET.
+services:
+  backend:
+    build: ./backend
+    environment:
+      FDL_JWT_SECRET: ${FDL_JWT_SECRET:?defina FDL_JWT_SECRET no .env (openssl rand -base64 32)}
+      FDL_JWT_TTL: ${FDL_JWT_TTL:-PT60M}
+      FDL_CORS_ORIGINS: ${FDL_CORS_ORIGINS:-http://localhost:5173}
+      FDL_BCRYPT_STRENGTH: ${FDL_BCRYPT_STRENGTH:-12}
+      FDL_SWAGGER_ENABLED: ${FDL_SWAGGER_ENABLED:-true}
+    ports:
+      - "8080:8080"
+    volumes:
+      - fdl-data:/app/data
+    healthcheck:
+      # A imagem JRE não traz curl; o bash (e não o sh, que não tem /dev/tcp) faz a requisição.
+      test:
+        - CMD
+        - bash
+        - -c
+        - |
+          exec 3<>/dev/tcp/127.0.0.1/8080
+          printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3
+          grep -q '"status":"UP"' <&3
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api/v1}
+    ports:
+      - "5173:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  fdl-data:
