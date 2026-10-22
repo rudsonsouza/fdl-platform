@@ -1,0 +1,28 @@
+diff --git a/frontend/src/features/orders/pages/NewOrderPage.test.tsx b/frontend/src/features/orders/pages/NewOrderPage.test.tsx
+index 7204241..1adac02 100644
+--- a/frontend/src/features/orders/pages/NewOrderPage.test.tsx
++++ b/frontend/src/features/orders/pages/NewOrderPage.test.tsx
+@@ -1,4 +1,4 @@
+-import { screen, waitFor, within } from '@testing-library/react'
++import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+ import { http, HttpResponse } from 'msw'
+ import { axe } from 'vitest-axe'
+ import { describe, expect, it } from 'vitest'
+@@ -77,13 +77,14 @@ describe('NewOrderPage', () => {
+   })
+ 
+   it('limita o pedido a 50 itens', async () => {
+-    const { user } = await openForm()
++    await openForm()
+     const add = screen.getByRole('button', { name: 'Adicionar item' })
+-    for (let i = 0; i < 55; i++) await user.click(add)
++    // fireEvent: 55 cliques com user-event passam de 5 s no runner do CI.
++    for (let i = 0; i < 55; i++) fireEvent.click(add)
+ 
+     expect(screen.getAllByRole('group', { name: /^Item \d+$/ })).toHaveLength(50)
+     expect(screen.getByText(/máximo de 50 itens/)).toBeInTheDocument()
+-  })
++  }, 20_000)
+ 
+   it('envio vazio mostra o resumo com foco e links que levam aos campos', async () => {
+     const { user } = await openForm()
