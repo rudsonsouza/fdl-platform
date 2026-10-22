@@ -23,8 +23,8 @@ public final class OrderMapper {
     }
 
     public static OrderSummaryResponse toSummary(Order o) {
-        return new OrderSummaryResponse(o.getId(), o.getCustomerName(), o.getStatus(), o.getTotalCents(),
-                o.getCreatedAt(), o.getUpdatedAt());
+        return new OrderSummaryResponse(o.getId(), o.getCustomerName(), o.getStatus(), o.getTotalItems(),
+                o.getTotalCents(), o.getCreatedAt(), o.getUpdatedAt());
     }
 
     public static OrderResponse toResponse(Order o) {

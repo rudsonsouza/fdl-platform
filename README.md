@@ -37,6 +37,8 @@ Estrutura de `src/`: `app/` (roteador, providers, `AppShell`), `features/` (auth
 
 Telas de autenticação (`/login` e `/register`): formulários com React Hook Form + Zod, cujos schemas espelham as regras da API (nome 2–100, e-mail válido até 254, senha 8–72 caracteres e 72 bytes, com letra e dígito). Erros de validação ficam junto de cada campo (`aria-invalid` + `aria-describedby`) e num resumo que recebe o foco; `400` do servidor é ligado ao campo pelo `errors[].field`, `409` marca o e-mail e `401` mostra uma mensagem única ("E-mail ou senha inválidos."). Depois do cadastro o login abre com o e-mail preenchido e anuncia "Conta criada"; depois do login o usuário volta à rota que tentou acessar (`?redirect=`, aceitando só caminhos internos).
 
+Telas de pedidos (`/orders` e `/orders/new`): a lista é uma tabela com legenda e cabeçalhos com `scope`, status em texto (`StatusBadge`), filtro por status e página na URL (`?status=&page=`), botão "Atualizar", recarga ao voltar para a aba e estados de carregamento (`aria-busy`), vazio e erro com "Tentar novamente". O formulário de novo pedido usa `fieldset`s, itens dinâmicos (1 a 50, com anúncio e foco ao adicionar/remover), total em BRL ao vivo, preço digitado em reais ("12,50") e enviado em centavos, erros `400` ligados aos campos, bloqueio de envio duplicado e, no sucesso, volta à lista anunciando "Pedido criado".
+
 Acessibilidade por construção: link "Pular para o conteúdo", marcos `header`/`nav`/`main`, um `h1` por tela com título do documento e foco atualizados a cada rota, região `aria-live` global, `Button` com `aria-disabled` no estado pendente, `TextField` com `aria-invalid`/`aria-describedby` e `FormErrorSummary` focado. Os testes rodam o axe nas telas e nos componentes.
 
 ## Back-end
@@ -123,7 +125,7 @@ Todos os endpoints exigem `Authorization: Bearer <token>`.
 | Endpoint | Resposta |
 | --- | --- |
 | `POST /api/v1/orders` (`customer`, `items`, `deliveryAddress`) | `201` com `Location: /api/v1/orders/{id}`, status `RECEBIDO` e `totalCents` calculado pelo servidor |
-| `GET /api/v1/orders?status&page&size&sort` | `200` com `{content, page, size, totalElements, totalPages}`; padrão `page=0`, `size=100` (máximo 500), `sort=createdAt,desc` |
+| `GET /api/v1/orders?status&page&size&sort` | `200` com `{content, page, size, totalElements, totalPages}`; cada item traz `id`, `customerName`, `status`, `totalItems` (soma das quantidades), `totalCents`, `createdAt` e `updatedAt`; padrão `page=0`, `size=100` (máximo 500), `sort=createdAt,desc` |
 | `GET /api/v1/orders/{id}` | `200` com itens, endereço, `history` e `allowedTransitions`; `404 ORDER_NOT_FOUND` |
 | `PATCH /api/v1/orders/{id}/status` (`status`) | `200` com o pedido; `409 INVALID_STATUS_TRANSITION` ou `409 CONCURRENT_MODIFICATION` |
 

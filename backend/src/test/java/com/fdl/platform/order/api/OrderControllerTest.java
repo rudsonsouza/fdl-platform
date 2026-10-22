@@ -106,12 +106,13 @@ class OrderControllerTest {
     void listWithoutParametersUsesTheDefaults() throws Exception {
         when(orders.findAll(eq(null), any(Pageable.class)))
                 .thenReturn(new PageResponse<>(List.of(new OrderSummaryResponse(ORDER, "Maria Silva",
-                        OrderStatus.RECEBIDO, 5490, NOW, NOW)), 0, 100, 1, 1));
+                        OrderStatus.RECEBIDO, 3, 5490, NOW, NOW)), 0, 100, 1, 1));
 
         mvc.perform(get("/api/v1/orders").with(operator()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(ORDER.toString()))
                 .andExpect(jsonPath("$.content[0].customerName").value("Maria Silva"))
+                .andExpect(jsonPath("$.content[0].totalItems").value(3))
                 .andExpect(jsonPath("$.page").value(0))
                 .andExpect(jsonPath("$.size").value(100))
                 .andExpect(jsonPath("$.totalElements").value(1))
