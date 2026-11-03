@@ -65,3 +65,4 @@ Thumbs.db
 # Ferramentas de IA (configuração local, não compartilhada)
 .claude/settings.local.json
 Claude outputs/
+*.patch
